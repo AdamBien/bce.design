@@ -2,7 +2,10 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 export default [{
-    input: ['./node_modules/lit-html/lit-html.js'],
+  input: [
+    './node_modules/lit-html/lit-html.js',
+    './node_modules/@reduxjs/toolkit/dist/redux-toolkit.esm.js'
+  ],
     output: { dir: "../app/src/libs", format: "esm" },
   plugins: [nodeResolve({
     browser: true
