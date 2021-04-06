@@ -2,8 +2,8 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 export default [{
-    input: ['index.js'],
-    output: { dir: "dist/lib", format: "esm" },
+    input: ['./node_modules/lit-html/lit-html.js'],
+    output: { dir: "../app/src/libs", format: "esm" },
   plugins: [nodeResolve({
     browser: true
   })]
