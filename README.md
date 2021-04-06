@@ -14,6 +14,8 @@ To launch the application:
 
 1. [Visual Studio Code](https://code.visualstudio.com)
 2. Setup: [JS imports](https://www.adam-bien.com/roller/abien/entry/fixing_es_6_import_autocompletion)
+3. lit-html [plugin](https://marketplace.visualstudio.com/items?itemName=bierner.lit-html) for syntax highlighting inside html templates
+4. redux devtools chrome [extension](https://github.com/zalmoxisus/redux-devtools-extension)
 
 # update dependencies
 
