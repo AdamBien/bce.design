@@ -12,4 +12,4 @@ To launch the application:
 
 # update dependencies
 
-Checkout [libs](../libs/README.md)
+Checkout [libs](https://github.com/AdamBien/bce.design/tree/main/libs)
