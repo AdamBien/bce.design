@@ -1,9 +1,9 @@
 import { configureStore } from "./libs/redux-toolkit.esm.js";
 import { load } from "./localstorage/control/StorageControl.js";
-
+import { bookmarks } from "./add/entity/BookmarksReducer.js"
 
 const reducer = {
-
+    bookmarks
 }
 const preloadedState = load();
 const config = preloadedState ? { reducer, preloadedState } : {reducer};
