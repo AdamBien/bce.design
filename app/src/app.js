@@ -1,6 +1,6 @@
 import { Router } from "./libs/vaadin-router.js";
-import './add/boundary/Add.js';
-import './list/boundary/List.js';
+import './bookmarks/boundary/Bookmarks.js';
+import './bookmarks/boundary/List.js';
 import store from "./store.js";
 import { save } from "./localstorage/control/StorageControl.js";
 
@@ -12,6 +12,6 @@ const outlet = document.querySelector('.view');
 const router = new Router(outlet);
 router.setRoutes([
   {path: '/',     component: 'b-list'},
-  {path: '/add',  component: 'b-add'}
+  {path: '/add',  component: 'b-bookmarks'}
 ]);
 console.log("router initialized");
