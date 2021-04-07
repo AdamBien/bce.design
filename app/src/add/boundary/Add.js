@@ -14,7 +14,7 @@ class Add extends BElement{
             <label class="label">Link:
                 <input ?disabled=${status} class="input is-primary" required name="link" placeholder="link" @keyup=${e=>this.onUserInput(e)} >
             </label>
-            <button @click="${e => this.newBookmark(e)}">new bookmark</button>
+            <button class="button is-primary" @click="${e => this.newBookmark(e)}">new bookmark</button>
         </form>
         `;
     }

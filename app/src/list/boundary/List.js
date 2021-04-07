@@ -10,10 +10,12 @@ class List extends BElement {
     view() {
         
         return html`
+        <ol>
             ${this.state.map(bookmark =>
                 html`
-                <li>bookmark.label / bookmark.link</li>
-            `)};
+                <li>${bookmark.label} / ${bookmark.link}</li>
+            `)}
+        </ol>
         `;
     }
 }
