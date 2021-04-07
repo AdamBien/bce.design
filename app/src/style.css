@@ -70,3 +70,9 @@ b-list{
     width: 80%;
     padding-top: 10%;
 }
+li{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 30%;
+}
