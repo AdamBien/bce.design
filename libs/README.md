@@ -2,6 +2,11 @@
 
 This project manages external dependencies and converts them into plain [ESM modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import).
 
+Initial installation:
+
+1. `cd libs`
+2. `npm install`
+
 To rebuild the dependencies execute:
 
 `rollup -c`
