@@ -14,13 +14,20 @@ class Add extends BElement{
             <label class="label">Link:
                 <input ?disabled=${status} class="input is-primary" required name="link" placeholder="link" @keyup=${e=>this.onUserInput(e)} >
             </label>
-            <button @click="${_ => newBookmark()}">new bookmark</button>
+            <button @click="${e => this.newBookmark(e)}">new bookmark</button>
         </form>
         `;
     }
     onUserInput({ target: { name,value } }) { 
         bookmarkUpdated(name,value);
+    }
 
+    newBookmark(event) {
+        const { target: { form } } = event;
+        event.preventDefault();
+        form.reportValidity();
+        if(form.checkValidity())
+            newBookmark();
     }
 }
 
