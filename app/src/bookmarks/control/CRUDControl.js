@@ -11,3 +11,8 @@ export const newBookmark = _ => {
     const id = Date.now();
     store.dispatch(newBookmarkAction(id));
 }
+
+export const deleteBookmarkAction = createAction("deleteBookmarkAction");
+export const deleteBookmark = (id) => {
+    store.dispatch(deleteBookmarkAction(id));
+}
