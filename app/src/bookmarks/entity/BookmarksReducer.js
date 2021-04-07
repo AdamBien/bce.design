@@ -9,7 +9,8 @@ const initialState = {
 export const bookmarks = createReducer(initialState, (builder) => {
     builder.addCase(bookmarkUpdatedAction, (state, { payload: { name, value } }) => {
         state.bookmark[name] = value;
-    }).addCase(newBookmarkAction, (state, _) => {
+    }).addCase(newBookmarkAction, (state, { payload }) => {
+        state.bookmark["id"] = payload;
         state.list = state.list.concat(state.bookmark);
     });
 })

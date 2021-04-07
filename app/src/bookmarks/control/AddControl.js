@@ -8,5 +8,6 @@ export const bookmarkUpdated = (name, value) => {
 
 export const newBookmarkAction = createAction("newBookmarkAction");
 export const newBookmark = _ => {
-    store.dispatch(newBookmarkAction());
+    const id = Date.now();
+    store.dispatch(newBookmarkAction(id));
 }
