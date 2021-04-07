@@ -13,7 +13,7 @@ class List extends BElement {
             <ol>
                 ${this.state.map(bookmark =>
                     html`
-                        <li>${bookmark.label} [<a href="${bookmark.link}" target="_blank">${bookmark.link}</a>]</li>
+                        <li>${bookmark.label} [<a href="${bookmark.link}" target="_blank">${bookmark.link}</a>] <button class="button is-small is-danger is-light">delete</button></li>
                     `)}
             </ol>
         </div>
