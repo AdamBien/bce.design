@@ -7,8 +7,9 @@ minimal tooling, essential dependencies, high productivity, no migrations, web p
 To launch the application:
 
 1. Install [browsersync](https://www.browsersync.io)
-2. `cd app`
-3. Perform: `browser-sync src -f src -b "google chrome" --no-notify`
+2. `git clone https://github.com/AdamBien/bce.design`
+3. `cd app`
+4. Perform: `browser-sync src -f src -b "google chrome" --no-notify`
 
 # IDE
 
