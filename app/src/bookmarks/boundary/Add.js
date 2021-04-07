@@ -1,6 +1,6 @@
 import BElement from "../../Belement.js";
 import { html } from "../../libs/lit-html.js";
-import { bookmarkUpdated, newBookmark } from "../control/AddControl.js";
+import { bookmarkUpdated, newBookmark } from "../control/CRUDControl.js";
 class Add extends BElement{
     
     view() {

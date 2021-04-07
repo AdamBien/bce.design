@@ -1,5 +1,6 @@
 import BElement from "../../Belement.js";
 import { html } from "../../libs/lit-html.js";
+import { deleteBookmark } from "../control/CRUDControl.js";
 
 class List extends BElement {
     
@@ -13,7 +14,7 @@ class List extends BElement {
             <ol>
                 ${this.state.map(bookmark =>
                     html`
-                        <li><span>${bookmark.label} [<a href="${bookmark.link}" target="_blank">${bookmark.link}</a>]</span> <button class="button is-small is-danger is-light">delete</button></li>
+                        <li><span>${bookmark.label} [<a href="${bookmark.link}" target="_blank">${bookmark.link}</a>]</span> <button @click="${_ => deleteBookmark(bookmark.id)}" class="button is-small is-danger is-light">delete</button></li>
                     `)}
             </ol>
         </div>
