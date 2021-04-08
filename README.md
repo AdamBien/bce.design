@@ -26,6 +26,12 @@ To launch the application:
 
 Checkout [libs](https://github.com/AdamBien/bce.design/tree/main/libs)
 
+# external ingredients
+
+1. [lit-html](https://en.wikipedia.org/wiki/Law_of_triviality)
+2. [redux toolkit](https://redux-toolkit.js.org)
+3. [vaadin router](https://vaadin.com/router) (suggestion / optional)
+4. [rollup](https://rollupjs.org/) (for updates / optional)
 # what is BCE?
 
 Boundary Control Entity (BCE) pattern is used to organize elements according to their responsibilities:  [https://en.wikipedia.org/wiki/Entity-control-boundary](https://en.wikipedia.org/wiki/Entity-control-boundary).
