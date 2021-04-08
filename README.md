@@ -13,6 +13,8 @@ To launch the application:
 3. `cd app`
 4. Perform: `browser-sync src -f src -b "google chrome" --no-notify`
 
+[![](https://i.ytimg.com/vi/LYzGgCW0OxY/mqdefault.jpg)](https://www.youtube.com/embed/LYzGgCW0OxY?rel=0)
+
 # IDE
 
 1. [Visual Studio Code](https://code.visualstudio.com)
