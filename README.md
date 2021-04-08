@@ -25,3 +25,11 @@ To launch the application:
 # update dependencies
 
 Checkout [libs](https://github.com/AdamBien/bce.design/tree/main/libs)
+
+# what is BCE?
+
+Boundary Control Entity (BCE) pattern is used to organize elements according to their responsibilities:  [https://en.wikipedia.org/wiki/Entity-control-boundary](https://en.wikipedia.org/wiki/Entity-control-boundary).
+
+Why it is needed? BCE was published in 1992 and since then described in various books and articles. Also: the boundary, control, entity icons are available in all modelling, drawing and designing tools. 
+
+The best of all: with BCE we don't have to discuss the naming and completely ignore the [Parkinson's law of triviality](https://en.wikipedia.org/wiki/Law_of_triviality) :-).
