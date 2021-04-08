@@ -1,4 +1,4 @@
-import BElement from "../../Belement.js";
+import BElement from "../../BElement.js";
 import { html } from "../../libs/lit-html.js";
 
 class Preview extends BElement {
