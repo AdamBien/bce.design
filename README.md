@@ -1,6 +1,6 @@
 # bce.design
 
-minimal tooling, essential dependencies, high productivity, no migrations, web platform starter
+minimal tooling, essential dependencies, high productivity, no migrations, web component starter for non-trivial web applications
 
 <img src="https://repository-images.githubusercontent.com/355100926/4731b900-979e-11eb-9014-3b30688cc691" alt="Boundary Control Entity quickstarter -> with web components" height="400"/>
 
