@@ -1,6 +1,6 @@
 # bce.design
 
-minimal tooling, essential dependencies, high productivity, no migrations, web platform starter
+minimal tooling, essential dependencies, high productivity, no migrations, web component starter for non-trivial web applications
 
 <img src="https://repository-images.githubusercontent.com/355100926/4731b900-979e-11eb-9014-3b30688cc691" alt="Boundary Control Entity quickstarter -> with web components" height="400"/>
 
@@ -28,7 +28,7 @@ Checkout [libs](https://github.com/AdamBien/bce.design/tree/main/libs)
 
 # external ingredients
 
-1. [lit-html](https://en.wikipedia.org/wiki/Law_of_triviality)
+1. [lit-html](https://lit-html.polymer-project.org)
 2. [redux toolkit](https://redux-toolkit.js.org)
 3. [vaadin router](https://vaadin.com/router) (suggestion / optional)
 4. [rollup](https://rollupjs.org/) (for updates / optional)
