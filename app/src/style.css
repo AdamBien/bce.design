@@ -19,7 +19,7 @@ main{
         "view"
         "footer";
     }
-    li{
+    ul li{
         display: inline;
     }
 }
