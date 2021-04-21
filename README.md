@@ -53,4 +53,5 @@ The best of all: with BCE we don't have to discuss the naming anymore and theref
 # resources
 
 https://github.com/adambien/mockend is useful as a mock backend with throttling functionality. 
-With mockend slow backend calls inside the `control` layer with asynchronous view updates can be tested.
+
+Mockend can slow down responses, what simplifies the testing of asynchronous view updates. Fetch-requests in the `control` layer can be delayed for test purposes.
