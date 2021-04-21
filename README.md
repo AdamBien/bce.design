@@ -32,6 +32,7 @@ Checkout [libs](https://github.com/AdamBien/bce.design/tree/main/libs)
 2. [redux toolkit](https://redux-toolkit.js.org)
 3. [vaadin router](https://vaadin.com/router) (suggestion / optional)
 4. [rollup](https://rollupjs.org/) (for updates / optional)
+
 # what is BCE?
 
 Boundary Control Entity (BCE) pattern is used to organize elements according to their responsibilities:  [https://en.wikipedia.org/wiki/Entity-control-boundary](https://en.wikipedia.org/wiki/Entity-control-boundary).
@@ -43,3 +44,8 @@ The best of all: with BCE we don't have to discuss the naming anymore and theref
 # unidirectional data flow
 
 [![](https://i.ytimg.com/vi/zjtaLLs2eSM/mqdefault.jpg)](https://www.youtube.com/embed/zjtaLLs2eSM?rel=0)
+
+# resources
+
+https://github.com/adambien/mockend is useful as a mock backend with throttling functionality. 
+With mockend slow backend calls inside the `control` layer with asynchronous view updates can be tested.
