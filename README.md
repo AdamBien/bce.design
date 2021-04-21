@@ -13,7 +13,7 @@ To launch the application:
 3. `cd app`
 4. Perform: `browser-sync src -f src -b "google chrome" --no-notify`
 
-[![](https://i.ytimg.com/vi/LYzGgCW0OxY/mqdefault.jpg)](https://www.youtube.com/embed/LYzGgCW0OxY?rel=0)
+[![BCE overview](https://i.ytimg.com/vi/LYzGgCW0OxY/mqdefault.jpg)](https://www.youtube.com/embed/LYzGgCW0OxY?rel=0)
 
 # IDE
 
@@ -41,9 +41,14 @@ Why it is needed? BCE was published in 1992 and since then described in various 
 
 The best of all: with BCE we don't have to discuss the naming anymore and therefore completely ignore the [Parkinson's law of triviality](https://en.wikipedia.org/wiki/Law_of_triviality) :-).
 
-# unidirectional data flow
+## unidirectional data flow
 
-[![](https://i.ytimg.com/vi/zjtaLLs2eSM/mqdefault.jpg)](https://www.youtube.com/embed/zjtaLLs2eSM?rel=0)
+[![unidirectional data flow](https://i.ytimg.com/vi/zjtaLLs2eSM/mqdefault.jpg)](https://www.youtube.com/embed/zjtaLLs2eSM?rel=0)
+
+## vaadin router
+
+[![vaadin router intro](https://i.ytimg.com/vi/Fxi9YdM0qFw/mqdefault.jpg)](https://www.youtube.com/watch?v=Fxi9YdM0qFw)
+
 
 # resources
 
