@@ -49,6 +49,11 @@ The best of all: with BCE we don't have to discuss the naming anymore and theref
 
 [![vaadin router intro](https://i.ytimg.com/vi/Fxi9YdM0qFw/mqdefault.jpg)](https://www.youtube.com/watch?v=Fxi9YdM0qFw)
 
+## static hosting on Amazon S3
+
+[![static web hosting on Amazon S3 intro](https://i.ytimg.com/vi/EtvyaUJjg_E/mqdefault.jpg)](https://www.youtube.com/watch?v=EtvyaUJjg_E)
+
+
 
 # resources
 
