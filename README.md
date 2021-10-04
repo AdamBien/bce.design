@@ -28,7 +28,7 @@ Checkout [libs](https://github.com/AdamBien/bce.design/tree/main/libs)
 
 # external ingredients
 
-1. [lit-html](https://lit-html.polymer-project.org)
+1. [lit-html](https://lit.dev/docs/libraries/standalone-templates/)
 2. [redux toolkit](https://redux-toolkit.js.org)
 3. [vaadin router](https://vaadin.com/router) (suggestion / optional)
 4. [rollup](https://rollupjs.org/) (for updates / optional)
