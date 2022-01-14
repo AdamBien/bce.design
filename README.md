@@ -60,3 +60,5 @@ The best of all: with BCE we don't have to discuss the naming anymore and theref
 https://github.com/adambien/mockend is useful as a mock backend with throttling functionality. 
 
 Mockend can slow down responses, what simplifies the testing of asynchronous view updates. Fetch-requests in the `control` layer can be delayed for test purposes.
+
+Article: [Web Components, Boundary Control Entity (BCE) and Unidirectional Data Flow with redux](https://adambien.blog/roller/abien/entry/web_components_boundary_control_entity)
