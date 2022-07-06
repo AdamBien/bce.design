@@ -14,8 +14,8 @@
     "rollup": "^2.44.0"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^1.5.1",
+    "@reduxjs/toolkit": "^1.8.3",
     "@vaadin/router": "^1.7.4",
-    "lit-html": "^2.0.0"
+    "lit-html": "^2.2.6"
   }
 }
