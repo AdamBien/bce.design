@@ -6,7 +6,15 @@ minimal tooling, essential dependencies, high productivity, no migrations, web c
 
 # run
 
-To launch the application:
+## Launch with vite:
+
+1. Install [vite](https://vitejs.dev)
+2. `git clone https://github.com/AdamBien/bce.design`
+3. `cd app/src`
+4. Perform: `npx vite`
+
+
+## Launch with browsersync:
 
 1. Install [browsersync](https://www.browsersync.io)
 2. `git clone https://github.com/AdamBien/bce.design`
