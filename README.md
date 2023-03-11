@@ -10,8 +10,7 @@ minimal tooling, essential dependencies, high productivity, no migrations, web c
 
 1. Install [vite](https://vitejs.dev)
 2. `git clone https://github.com/AdamBien/bce.design`
-3. `cd app/src`
-4. Perform: `npx vite`
+3. Perform: `npx vite`
 
 
 ## Launch with browsersync:
