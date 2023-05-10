@@ -10,12 +10,12 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^13.0.5",
-    "rollup": "^2.44.0"
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "rollup": "^3.21.6"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^1.8.3",
-    "@vaadin/router": "^1.7.4",
-    "lit-html": "^2.2.6"
+    "@reduxjs/toolkit": "^1.9.5",
+    "@vaadin/router": "^1.7.5",
+    "lit-html": "^2.7.3"
   }
 }
