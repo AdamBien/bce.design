@@ -318,7 +318,7 @@ const POPSTATE = {
 /**
  * Expose `pathToRegexp`.
  */
-var pathToRegexp_1 = pathToRegexp;
+var pathToRegexp_1 = pathToRegexp$1;
 var parse_1 = parse;
 var compile_1 = compile;
 var tokensToFunction_1 = tokensToFunction;
@@ -587,7 +587,7 @@ function arrayToRegexp (path, keys, options) {
   var parts = [];
 
   for (var i = 0; i < path.length; i++) {
-    parts.push(pathToRegexp(path[i], keys, options).source);
+    parts.push(pathToRegexp$1(path[i], keys, options).source);
   }
 
   return new RegExp('(?:' + parts.join('|') + ')', flags(options))
@@ -675,7 +675,7 @@ function tokensToRegExp (tokens, keys, options) {
  * @param  {Object=}               options
  * @return {!RegExp}
  */
-function pathToRegexp (path, keys, options) {
+function pathToRegexp$1 (path, keys, options) {
   if (path instanceof RegExp) {
     return regexpToRegexp(path, keys)
   }
@@ -701,9 +701,9 @@ pathToRegexp_1.tokensToRegExp = tokensToRegExp_1;
  */
 
 const {hasOwnProperty} = Object.prototype;
-const cache = new Map();
+const cache$1 = new Map();
 // see https://github.com/pillarjs/path-to-regexp/issues/148
-cache.set('|false', {
+cache$1.set('|false', {
   keys: [],
   pattern: /(?:)/
 });
@@ -719,7 +719,7 @@ function decodeParam(val) {
 function matchPath(routepath, path, exact, parentKeys, parentParams) {
   exact = !!exact;
   const cacheKey = `${routepath}|${exact}`;
-  let regexp = cache.get(cacheKey);
+  let regexp = cache$1.get(cacheKey);
 
   if (!regexp) {
     const keys = [];
@@ -730,7 +730,7 @@ function matchPath(routepath, path, exact, parentKeys, parentParams) {
         strict: routepath === ''
       }),
     };
-    cache.set(cacheKey, regexp);
+    cache$1.set(cacheKey, regexp);
   }
 
   const m = regexp.pattern.exec(path);
@@ -1161,8 +1161,8 @@ Resolver.pathToRegexp = pathToRegexp_1;
  * LICENSE.txt file in the root directory of this source tree.
  */
 
-const {pathToRegexp: pathToRegexp$1} = Resolver;
-const cache$1 = new Map();
+const {pathToRegexp} = Resolver;
+const cache = new Map();
 
 function cacheRoutes(routesByName, route, routes) {
   const name = route.name || route.component;
@@ -1219,7 +1219,7 @@ function generateUrls(router, options = {}) {
       }
     }
 
-    let regexp = cache$1.get(route.fullPath);
+    let regexp = cache.get(route.fullPath);
     if (!regexp) {
       let fullPath = getRoutePath(route);
       let rt = route.parent;
@@ -1230,8 +1230,8 @@ function generateUrls(router, options = {}) {
         }
         rt = rt.parent;
       }
-      const tokens = pathToRegexp$1.parse(fullPath);
-      const toPath = pathToRegexp$1.tokensToFunction(tokens);
+      const tokens = pathToRegexp.parse(fullPath);
+      const toPath = pathToRegexp.tokensToFunction(tokens);
       const keys = Object.create(null);
       for (let i = 0; i < tokens.length; i++) {
         if (!isString(tokens[i])) {
@@ -1239,7 +1239,7 @@ function generateUrls(router, options = {}) {
         }
       }
       regexp = {toPath, keys};
-      cache$1.set(fullPath, regexp);
+      cache.set(fullPath, regexp);
       route.fullPath = fullPath;
     }
 
@@ -2319,7 +2319,7 @@ class Router extends Resolver {
 }
 
 const DEV_MODE_CODE_REGEXP =
-  /\/\*\*\s+vaadin-dev-mode:start([\s\S]*)vaadin-dev-mode:end\s+\*\*\//i;
+  /\/\*[\*!]\s+vaadin-dev-mode:start([\s\S]*)vaadin-dev-mode:end\s+\*\*\//i;
 
 const FlowClients = window.Vaadin && window.Vaadin.Flow && window.Vaadin.Flow.clients;
 
@@ -2869,7 +2869,7 @@ var UsageStatistics = function () {
   }], [{
     key: 'version',
     get: function get$1() {
-      return '2.1.0';
+      return '2.1.2';
     }
   }, {
     key: 'firstUseKey',
