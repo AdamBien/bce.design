@@ -11,7 +11,7 @@ const save = (object) => {
 
 /**
  * 
- * @returns {string} - the serialized object
+ * @returns {object} - the serialized object
  */
 const load = _ => { 
     const serialized = localStorage.getItem(KEY);

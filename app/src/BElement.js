@@ -56,6 +56,10 @@ export default class BElement extends HTMLElement {
         console.groupEnd();
     }
 
+    /**
+     * 
+     * @returns {HTMLElement} - the element to render the view into
+     */
     getRenderTarget() {
         return this;
     }
