@@ -1,9 +1,21 @@
 import { render } from "./libs/lit-html.js";
 import store from "./store.js";
 
-export default class BElement extends HTMLElement { 
+/**
+ * This class is the base for all custom elements in this application,
+ * and provides the following functionality:
+ * <ol>
+ * <li>Subscribes to the redux store</li>
+ * <li>Triggers a view update on state changes</li>
+ * <li>Provides an abstract / template implementation for the view method</li>
+ * <li>unsubscribes from the redux store on disconnect</li>
+ * <li>provides a hook to extract state from the redux store</li>
+ * </ol>
+ * @extends HTMLElement
+ */
+export default class BElement extends HTMLElement {
 
-    constructor() { 
+    constructor() {
         super();
         this.state = {};
     }
@@ -13,11 +25,11 @@ export default class BElement extends HTMLElement {
      * @param {string} name 
      * @returns {string} the fully qualified method name
      */
-    log(name) { 
+    log(name) {
         return `${this.constructor.name}.${name}`
     }
 
-    connectedCallback() { 
+    connectedCallback() {
         console.group(this.log('connectedCallback'))
         this.unsubscribe = store.subscribe(_ => this.triggerViewUpdate());
         console.log('subscribed for redux changes');
@@ -25,14 +37,14 @@ export default class BElement extends HTMLElement {
         console.groupEnd();
     }
 
-    disconnectedCallback() { 
+    disconnectedCallback() {
         console.group(this.log('disconnectedCallback'))
         this.unsubscribe();
         console.log('unsubscribe called');
         console.groupEnd();
     }
 
-    triggerViewUpdate() { 
+    triggerViewUpdate() {
         console.group(this.log('triggerViewUpdate'))
         console.log('Before extraction:', store.getState());
         this.state = this.extractState(store.getState());
@@ -44,14 +56,22 @@ export default class BElement extends HTMLElement {
         console.groupEnd();
     }
 
-    getRenderTarget() { 
+    getRenderTarget() {
         return this;
     }
-
-    extractState(reduxState) { 
+    /**
+     * 
+     * @param {Object} reduxState - the entire state of the redux store 
+     * @returns - a slice of the redux state that is relevant for this component
+     */
+    extractState(reduxState) {
         return reduxState;
     }
 
-    view() { }
+    /**
+     * @abstract
+     * @returns {any} - the template to render
+     */
+    view() {  }
 
 }
