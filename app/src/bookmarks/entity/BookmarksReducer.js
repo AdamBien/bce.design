@@ -1,4 +1,4 @@
-import { createReducer } from "../../libs/redux-toolkit.esm.js"
+import { createReducer } from "../../libs/redux-toolkit.modern.js"
 import { bookmarkUpdatedAction, deleteBookmarkAction, newBookmarkAction } from "../control/CRUDControl.js";
 
 const initialState = {

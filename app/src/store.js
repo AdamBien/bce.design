@@ -1,4 +1,4 @@
-import { configureStore } from "./libs/redux-toolkit.esm.js";
+import { configureStore } from "./libs/redux-toolkit.modern.js";
 import { load } from "./localstorage/control/StorageControl.js";
 import { bookmarks } from "./bookmarks/entity/BookmarksReducer.js"
 
