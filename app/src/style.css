@@ -46,7 +46,9 @@ header{
     margin: 1rem auto;
 }
 footer{
+    display: flex;
     grid-area: footer;
+    align-items: end;
 }
 
 nav{
