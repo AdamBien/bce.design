@@ -6,6 +6,7 @@ minimal tooling, essential dependencies, high productivity, no migrations, web c
 
 # run
 
+
 ## Launch with vite:
 
 1. Install [vite](https://vitejs.dev)
@@ -20,7 +21,24 @@ minimal tooling, essential dependencies, high productivity, no migrations, web c
 3. `cd app`
 4. Perform: `browser-sync src -f src -b "google chrome" --no-notify`
 
+## Launch with jwebserver:
+
+If you have installed Java 18 or later, you can serve the assets with `jwebserver` from `app/src`;
+
 [![BCE overview](https://i.ytimg.com/vi/LYzGgCW0OxY/mqdefault.jpg)](https://www.youtube.com/embed/LYzGgCW0OxY?rel=0)
+
+
+## e2e tests
+
+The e2e tests are available from:
+
+[tests](./tests/)
+
+## code coverage
+
+The e2e tests with configured global code coverage is available from:
+
+[codecoverage](./codecoverage/)
 
 # IDE
 
@@ -59,7 +77,6 @@ The best of all: with BCE we don't have to discuss the naming anymore and theref
 ## static hosting on Amazon S3
 
 [![static web hosting on Amazon S3 intro](https://i.ytimg.com/vi/EtvyaUJjg_E/mqdefault.jpg)](https://www.youtube.com/watch?v=EtvyaUJjg_E)
-
 
 
 # resources
