@@ -1,5 +1,7 @@
 # global code coverage
 
+This project runs e2e tests with the goal of calculating total code coverage, which requires a special Playwright configuration to run all tests in a single browser instance.
+
 the project structure was created with:
 
 `npm init playwright@latest`
