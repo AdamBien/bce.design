@@ -36,9 +36,7 @@ The e2e tests are available from:
 
 ## code coverage
 
-The e2e tests with configured global code coverage is available from:
-
-[codecoverage](./codecoverage/)
+The e2e tests with configured global code coverage is available from: [codecoverage](./codecoverage/)
 
 # IDE
 
