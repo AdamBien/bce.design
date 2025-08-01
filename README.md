@@ -21,9 +21,9 @@ minimal tooling, essential dependencies, high productivity, no migrations, web c
 3. `cd app`
 4. Perform: `browser-sync src -f src -b "google chrome" --no-notify`
 
-## Launch with jwebserver:
+## Launch with zws (zero dependencies web server):
 
-If you have installed Java 18 or later, you can serve the assets with `jwebserver` from `app/src`;
+If you have installed recent Java or later, you can serve the assets with [zws](https://github.com/adamBien/zws) from `app/src`;
 
 [![BCE overview](https://i.ytimg.com/vi/LYzGgCW0OxY/mqdefault.jpg)](https://www.youtube.com/embed/LYzGgCW0OxY?rel=0)
 
