@@ -10,8 +10,8 @@ var symbol_observable_default = $$observable;
 // src/utils/actionTypes.ts
 var randomString = () => Math.random().toString(36).substring(7).split("").join(".");
 var ActionTypes = {
-  INIT: `@@redux/INIT${ randomString()}`,
-  REPLACE: `@@redux/REPLACE${ randomString()}`,
+  INIT: `@@redux/INIT${/* @__PURE__ */ randomString()}`,
+  REPLACE: `@@redux/REPLACE${/* @__PURE__ */ randomString()}`,
   PROBE_UNKNOWN_ACTION: () => `@@redux/PROBE_UNKNOWN_ACTION${randomString()}`
 };
 var actionTypes_default = ActionTypes;
@@ -462,8 +462,8 @@ function original$1(value) {
 }
 function each(obj, iter) {
   if (getArchtype(obj) === 0 /* Object */) {
-    Object.entries(obj).forEach(([key, value]) => {
-      iter(key, value, obj);
+    Reflect.ownKeys(obj).forEach((key) => {
+      iter(key, obj[key], obj);
     });
   } else {
     obj.forEach((entry, index) => iter(index, entry, obj));
@@ -510,33 +510,36 @@ function shallowCopy(base, strict) {
   }
   if (Array.isArray(base))
     return Array.prototype.slice.call(base);
-  if (!strict && isPlainObject(base)) {
-    if (!getPrototypeOf(base)) {
-      const obj = /* @__PURE__ */ Object.create(null);
-      return Object.assign(obj, base);
+  const isPlain = isPlainObject(base);
+  if (strict === true || strict === "class_only" && !isPlain) {
+    const descriptors = Object.getOwnPropertyDescriptors(base);
+    delete descriptors[DRAFT_STATE];
+    let keys = Reflect.ownKeys(descriptors);
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const desc = descriptors[key];
+      if (desc.writable === false) {
+        desc.writable = true;
+        desc.configurable = true;
+      }
+      if (desc.get || desc.set)
+        descriptors[key] = {
+          configurable: true,
+          writable: true,
+          // could live with !!desc.set as well here...
+          enumerable: desc.enumerable,
+          value: base[key]
+        };
     }
-    return { ...base };
-  }
-  const descriptors = Object.getOwnPropertyDescriptors(base);
-  delete descriptors[DRAFT_STATE];
-  let keys = Reflect.ownKeys(descriptors);
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
-    const desc = descriptors[key];
-    if (desc.writable === false) {
-      desc.writable = true;
-      desc.configurable = true;
+    return Object.create(getPrototypeOf(base), descriptors);
+  } else {
+    const proto = getPrototypeOf(base);
+    if (proto !== null && isPlain) {
+      return { ...base };
     }
-    if (desc.get || desc.set)
-      descriptors[key] = {
-        configurable: true,
-        writable: true,
-        // could live with !!desc.set as well here...
-        enumerable: desc.enumerable,
-        value: base[key]
-      };
+    const obj = Object.create(proto);
+    return Object.assign(obj, base);
   }
-  return Object.create(getPrototypeOf(base), descriptors);
 }
 function freeze(obj, deep = false) {
   if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj))
@@ -546,7 +549,7 @@ function freeze(obj, deep = false) {
   }
   Object.freeze(obj);
   if (deep)
-    each(obj, (_key, value) => freeze(value, true));
+    Object.entries(obj).forEach(([key, value]) => freeze(value, true));
   return obj;
 }
 function dontMutateFrozenCollections() {
@@ -650,7 +653,8 @@ function finalize(rootScope, value, path) {
   if (!state) {
     each(
       value,
-      (key, childValue) => finalizeProperty(rootScope, state, value, key, childValue, path));
+      (key, childValue) => finalizeProperty(rootScope, state, value, key, childValue, path)
+    );
     return value;
   }
   if (state.scope_ !== rootScope)
@@ -706,7 +710,7 @@ function finalizeProperty(rootScope, parentState, targetObject, prop, childValue
       return;
     }
     finalize(rootScope, childValue);
-    if (!parentState || !parentState.scope_.parent_)
+    if ((!parentState || !parentState.scope_.parent_) && typeof prop !== "symbol" && Object.prototype.propertyIsEnumerable.call(targetObject, prop))
       maybeFreeze(rootScope, childValue);
   }
 }
@@ -1148,7 +1152,7 @@ var globalDevModeChecks = {
 };
 
 // src/utils.ts
-var NOT_FOUND = "NOT_FOUND";
+var NOT_FOUND = /* @__PURE__ */ Symbol("NOT_FOUND");
 function assertIsFunction(func, errorMessage = `expected a function, instead received ${typeof func}`) {
   if (typeof func !== "function") {
     throw new TypeError(errorMessage);
@@ -1278,7 +1282,7 @@ function lruMemoize(func, equalityCheckOrOptions) {
   } = providedOptions;
   const comparator = createCacheKeyComparator(equalityCheck);
   let resultsCount = 0;
-  const cache = maxSize === 1 ? createSingletonCache(comparator) : createLruCache(maxSize, comparator);
+  const cache = maxSize <= 1 ? createSingletonCache(comparator) : createLruCache(maxSize, comparator);
   function memoized() {
     let value = cache.get(arguments);
     if (value === NOT_FOUND) {
@@ -1372,17 +1376,17 @@ function weakMapMemoize(func, options = {}) {
     } else {
       result = func.apply(null, arguments);
       resultsCount++;
+      if (resultEqualityCheck) {
+        const lastResultValue = lastResult?.deref?.() ?? lastResult;
+        if (lastResultValue != null && resultEqualityCheck(lastResultValue, result)) {
+          result = lastResultValue;
+          resultsCount !== 0 && resultsCount--;
+        }
+        const needsWeakRef = typeof result === "object" && result !== null || typeof result === "function";
+        lastResult = needsWeakRef ? new Ref(result) : result;
+      }
     }
     terminatedNode.s = TERMINATED;
-    if (resultEqualityCheck) {
-      const lastResultValue = lastResult?.deref?.() ?? lastResult;
-      if (lastResultValue != null && resultEqualityCheck(lastResultValue, result)) {
-        result = lastResultValue;
-        resultsCount !== 0 && resultsCount--;
-      }
-      const needsWeakRef = typeof result === "object" && result !== null || typeof result === "function";
-      lastResult = needsWeakRef ? new Ref(result) : result;
-    }
     terminatedNode.v = result;
     return result;
   }
@@ -1546,12 +1550,10 @@ var createDraftSafeSelectorCreator = (...args) => {
   });
   return createDraftSafeSelector2;
 };
-var createDraftSafeSelector = createDraftSafeSelectorCreator(weakMapMemoize);
+var createDraftSafeSelector = /* @__PURE__ */ createDraftSafeSelectorCreator(weakMapMemoize);
 var composeWithDevTools = typeof window !== "undefined" && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ : function() {
-  if (arguments.length === 0)
-    return void 0;
-  if (typeof arguments[0] === "object")
-    return compose;
+  if (arguments.length === 0) return void 0;
+  if (typeof arguments[0] === "object") return compose;
   return compose.apply(null, arguments);
 };
 
@@ -1642,14 +1644,6 @@ It is disabled in production builds, so you don't need to worry about that.`);
     }
   };
 }
-function find(iterable, comparator) {
-  for (const entry of iterable) {
-    if (comparator(entry)) {
-      return entry;
-    }
-  }
-  return void 0;
-}
 var Tuple = class _Tuple extends Array {
   constructor(...items) {
     super(...items);
@@ -1672,20 +1666,9 @@ function freezeDraftable(val) {
   return isDraftable(val) ? produce(val, () => {
   }) : val;
 }
-function emplace(map, key, handler) {
-  if (map.has(key)) {
-    let value = map.get(key);
-    if (handler.update) {
-      value = handler.update(value, key, map);
-      map.set(key, value);
-    }
-    return value;
-  }
-  if (!handler.insert)
-    throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(10) : "No insert provided for key not already in map");
-  const inserted = handler.insert(key, map);
-  map.set(key, inserted);
-  return inserted;
+function getOrInsertComputed(map, key, compute) {
+  if (map.has(key)) return map.get(key);
+  return map.set(key, compute(key)).get(key);
 }
 
 // src/immutableStateInvariantMiddleware.ts
@@ -1769,21 +1752,17 @@ function createImmutableStateInvariantMiddleware(options = {}) {
       return JSON.stringify(obj, getSerialize2(serializer, decycler), indent);
     }, getSerialize2 = function(serializer, decycler) {
       let stack = [], keys = [];
-      if (!decycler)
-        decycler = function(_, value) {
-          if (stack[0] === value)
-            return "[Circular ~]";
-          return "[Circular ~." + keys.slice(0, stack.indexOf(value)).join(".") + "]";
-        };
+      if (!decycler) decycler = function(_, value) {
+        if (stack[0] === value) return "[Circular ~]";
+        return "[Circular ~." + keys.slice(0, stack.indexOf(value)).join(".") + "]";
+      };
       return function(key, value) {
         if (stack.length > 0) {
           var thisPos = stack.indexOf(this);
           ~thisPos ? stack.splice(thisPos + 1) : stack.push(this);
           ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key);
-          if (~stack.indexOf(value))
-            value = decycler.call(this, key, value);
-        } else
-          stack.push(value);
+          if (~stack.indexOf(value)) value = decycler.call(this, key, value);
+        } else stack.push(value);
         return serializer == null ? value : serializer.call(this, key, value);
       };
     };
@@ -1839,8 +1818,7 @@ function findNonSerializableValue(value, path = "", isSerializable = isPlain, ge
   if (typeof value !== "object" || value === null) {
     return false;
   }
-  if (cache?.has(value))
-    return false;
+  if (cache?.has(value)) return false;
   const entries = getEntries != null ? getEntries(value) : Object.entries(value);
   const hasIgnoredPaths = ignoredPaths.length > 0;
   for (const [key, nestedValue] of entries) {
@@ -1869,18 +1847,14 @@ function findNonSerializableValue(value, path = "", isSerializable = isPlain, ge
       }
     }
   }
-  if (cache && isNestedFrozen(value))
-    cache.add(value);
+  if (cache && isNestedFrozen(value)) cache.add(value);
   return false;
 }
 function isNestedFrozen(value) {
-  if (!Object.isFrozen(value))
-    return false;
+  if (!Object.isFrozen(value)) return false;
   for (const nestedValue of Object.values(value)) {
-    if (typeof nestedValue !== "object" || nestedValue === null)
-      continue;
-    if (!isNestedFrozen(nestedValue))
-      return false;
+    if (typeof nestedValue !== "object" || nestedValue === null) continue;
+    if (!isNestedFrozen(nestedValue)) return false;
   }
   return true;
 }
@@ -1997,7 +1971,6 @@ var createQueueWithTimer = (timeout) => {
     setTimeout(notify, timeout);
   };
 };
-var rAF = typeof window !== "undefined" && window.requestAnimationFrame ? window.requestAnimationFrame : createQueueWithTimer(10);
 var autoBatchEnhancer = (options = {
   type: "raf"
 }) => (next) => (...args) => {
@@ -2006,7 +1979,10 @@ var autoBatchEnhancer = (options = {
   let shouldNotifyAtEndOfTick = false;
   let notificationQueued = false;
   const listeners = /* @__PURE__ */ new Set();
-  const queueCallback = options.type === "tick" ? queueMicrotask : options.type === "raf" ? rAF : options.type === "callback" ? options.queueNotification : createQueueWithTimer(options.timeout);
+  const queueCallback = options.type === "tick" ? queueMicrotask : options.type === "raf" ? (
+    // requestAnimationFrame won't exist in SSR environments. Fall back to a vague approximation just to keep from erroring.
+    typeof window !== "undefined" && window.requestAnimationFrame ? window.requestAnimationFrame : createQueueWithTimer(10)
+  ) : options.type === "callback" ? options.queueNotification : createQueueWithTimer(options.timeout);
   const notifyListeners = () => {
     notificationQueued = false;
     if (shouldNotifyAtEndOfTick) {
@@ -2059,13 +2035,13 @@ var buildGetDefaultEnhancers = (middlewareEnhancer) => function getDefaultEnhanc
 };
 
 // src/configureStore.ts
-var IS_PRODUCTION = process.env.NODE_ENV === "production";
 function configureStore(options) {
   const getDefaultMiddleware = buildGetDefaultMiddleware();
   const {
     reducer = void 0,
     middleware,
     devTools = true,
+    duplicateMiddlewareCheck = true,
     preloadedState = void 0,
     enhancers = void 0
   } = options || {};
@@ -2077,42 +2053,51 @@ function configureStore(options) {
   } else {
     throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(1) : "`reducer` is a required argument, and must be a function or an object of functions that can be passed to combineReducers");
   }
-  if (!IS_PRODUCTION && middleware && typeof middleware !== "function") {
+  if (process.env.NODE_ENV !== "production" && middleware && typeof middleware !== "function") {
     throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(2) : "`middleware` field must be a callback");
   }
   let finalMiddleware;
   if (typeof middleware === "function") {
     finalMiddleware = middleware(getDefaultMiddleware);
-    if (!IS_PRODUCTION && !Array.isArray(finalMiddleware)) {
+    if (process.env.NODE_ENV !== "production" && !Array.isArray(finalMiddleware)) {
       throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(3) : "when using a middleware builder function, an array of middleware must be returned");
     }
   } else {
     finalMiddleware = getDefaultMiddleware();
   }
-  if (!IS_PRODUCTION && finalMiddleware.some((item) => typeof item !== "function")) {
+  if (process.env.NODE_ENV !== "production" && finalMiddleware.some((item) => typeof item !== "function")) {
     throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(4) : "each middleware provided to configureStore must be a function");
+  }
+  if (process.env.NODE_ENV !== "production" && duplicateMiddlewareCheck) {
+    let middlewareReferences = /* @__PURE__ */ new Set();
+    finalMiddleware.forEach((middleware2) => {
+      if (middlewareReferences.has(middleware2)) {
+        throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(42) : "Duplicate middleware references found when creating the store. Ensure that each middleware is only included once.");
+      }
+      middlewareReferences.add(middleware2);
+    });
   }
   let finalCompose = compose;
   if (devTools) {
     finalCompose = composeWithDevTools({
       // Enable capture of stack traces for dispatched Redux actions
-      trace: !IS_PRODUCTION,
+      trace: process.env.NODE_ENV !== "production",
       ...typeof devTools === "object" && devTools
     });
   }
   const middlewareEnhancer = applyMiddleware(...finalMiddleware);
   const getDefaultEnhancers = buildGetDefaultEnhancers(middlewareEnhancer);
-  if (!IS_PRODUCTION && enhancers && typeof enhancers !== "function") {
+  if (process.env.NODE_ENV !== "production" && enhancers && typeof enhancers !== "function") {
     throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(5) : "`enhancers` field must be a callback");
   }
   let storeEnhancers = typeof enhancers === "function" ? enhancers(getDefaultEnhancers) : getDefaultEnhancers();
-  if (!IS_PRODUCTION && !Array.isArray(storeEnhancers)) {
+  if (process.env.NODE_ENV !== "production" && !Array.isArray(storeEnhancers)) {
     throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(6) : "`enhancers` callback must return an array");
   }
-  if (!IS_PRODUCTION && storeEnhancers.some((item) => typeof item !== "function")) {
+  if (process.env.NODE_ENV !== "production" && storeEnhancers.some((item) => typeof item !== "function")) {
     throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(7) : "each enhancer provided to configureStore must be a function");
   }
-  if (!IS_PRODUCTION && finalMiddleware.length && !storeEnhancers.includes(middlewareEnhancer)) {
+  if (process.env.NODE_ENV !== "production" && finalMiddleware.length && !storeEnhancers.includes(middlewareEnhancer)) {
     console.error("middlewares were provided, but middleware enhancer was not included in final enhancers - make sure to call `getDefaultEnhancers`");
   }
   const composedEnhancer = finalCompose(...storeEnhancers);
@@ -2212,7 +2197,7 @@ function createReducer(initialState, mapOrBuilderCallback) {
             if (previousState === null) {
               return previousState;
             }
-            throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(9) : "A case reducer on a non-draftable value must not return undefined");
+            throw Error("A case reducer on a non-draftable value must not return undefined");
           }
           return result;
         } else {
@@ -2227,17 +2212,6 @@ function createReducer(initialState, mapOrBuilderCallback) {
   reducer.getInitialState = getInitialState;
   return reducer;
 }
-
-// src/nanoid.ts
-var urlAlphabet = "ModuleSymbhasOwnPr-0123456789ABCDEFGHNRVfgctiUvz_KqYTJkLxpZXIjQW";
-var nanoid = (size = 21) => {
-  let id = "";
-  let i = size;
-  while (i--) {
-    id += urlAlphabet[Math.random() * 64 | 0];
-  }
-  return id;
-};
 
 // src/matchers.ts
 var matches = (matcher, action) => {
@@ -2258,8 +2232,7 @@ function isAllOf(...matchers) {
   };
 }
 function hasExpectedRequestMetadata(action, validStatus) {
-  if (!action || !action.meta)
-    return false;
+  if (!action || !action.meta) return false;
   const hasValidRequestId = typeof action.meta.requestId === "string";
   const hasValidRequestStatus = validStatus.indexOf(action.meta.requestStatus) > -1;
   return hasValidRequestId && hasValidRequestStatus;
@@ -2274,11 +2247,7 @@ function isPending(...asyncThunks) {
   if (!isAsyncThunkArray(asyncThunks)) {
     return isPending()(asyncThunks[0]);
   }
-  return (action) => {
-    const matchers = asyncThunks.map((asyncThunk) => asyncThunk.pending);
-    const combinedMatcher = isAnyOf(...matchers);
-    return combinedMatcher(action);
-  };
+  return isAnyOf(...asyncThunks.map((asyncThunk) => asyncThunk.pending));
 }
 function isRejected(...asyncThunks) {
   if (asyncThunks.length === 0) {
@@ -2287,29 +2256,19 @@ function isRejected(...asyncThunks) {
   if (!isAsyncThunkArray(asyncThunks)) {
     return isRejected()(asyncThunks[0]);
   }
-  return (action) => {
-    const matchers = asyncThunks.map((asyncThunk) => asyncThunk.rejected);
-    const combinedMatcher = isAnyOf(...matchers);
-    return combinedMatcher(action);
-  };
+  return isAnyOf(...asyncThunks.map((asyncThunk) => asyncThunk.rejected));
 }
 function isRejectedWithValue(...asyncThunks) {
   const hasFlag = (action) => {
     return action && action.meta && action.meta.rejectedWithValue;
   };
   if (asyncThunks.length === 0) {
-    return (action) => {
-      const combinedMatcher = isAllOf(isRejected(...asyncThunks), hasFlag);
-      return combinedMatcher(action);
-    };
+    return isAllOf(isRejected(...asyncThunks), hasFlag);
   }
   if (!isAsyncThunkArray(asyncThunks)) {
     return isRejectedWithValue()(asyncThunks[0]);
   }
-  return (action) => {
-    const combinedMatcher = isAllOf(isRejected(...asyncThunks), hasFlag);
-    return combinedMatcher(action);
-  };
+  return isAllOf(isRejected(...asyncThunks), hasFlag);
 }
 function isFulfilled(...asyncThunks) {
   if (asyncThunks.length === 0) {
@@ -2318,11 +2277,7 @@ function isFulfilled(...asyncThunks) {
   if (!isAsyncThunkArray(asyncThunks)) {
     return isFulfilled()(asyncThunks[0]);
   }
-  return (action) => {
-    const matchers = asyncThunks.map((asyncThunk) => asyncThunk.fulfilled);
-    const combinedMatcher = isAnyOf(...matchers);
-    return combinedMatcher(action);
-  };
+  return isAnyOf(...asyncThunks.map((asyncThunk) => asyncThunk.fulfilled));
 }
 function isAsyncThunkAction(...asyncThunks) {
   if (asyncThunks.length === 0) {
@@ -2331,15 +2286,19 @@ function isAsyncThunkAction(...asyncThunks) {
   if (!isAsyncThunkArray(asyncThunks)) {
     return isAsyncThunkAction()(asyncThunks[0]);
   }
-  return (action) => {
-    const matchers = [];
-    for (const asyncThunk of asyncThunks) {
-      matchers.push(asyncThunk.pending, asyncThunk.rejected, asyncThunk.fulfilled);
-    }
-    const combinedMatcher = isAnyOf(...matchers);
-    return combinedMatcher(action);
-  };
+  return isAnyOf(...asyncThunks.flatMap((asyncThunk) => [asyncThunk.pending, asyncThunk.rejected, asyncThunk.fulfilled]));
 }
+
+// src/nanoid.ts
+var urlAlphabet = "ModuleSymbhasOwnPr-0123456789ABCDEFGHNRVfgctiUvz_KqYTJkLxpZXIjQW";
+var nanoid = (size = 21) => {
+  let id = "";
+  let i = size;
+  while (i--) {
+    id += urlAlphabet[Math.random() * 64 | 0];
+  }
+  return id;
+};
 
 // src/createAsyncThunk.ts
 var commonProperties = ["name", "message", "stack", "code"];
@@ -2379,6 +2338,7 @@ var miniSerializeError = (value) => {
     message: String(value)
   };
 };
+var externalAbortMessage = "External signal was aborted";
 var createAsyncThunk = /* @__PURE__ */ (() => {
   function createAsyncThunk2(typePrefix, payloadCreator, options) {
     const fulfilled = createAction(typePrefix + "/fulfilled", (payload, requestId, arg, meta) => ({
@@ -2412,7 +2372,9 @@ var createAsyncThunk = /* @__PURE__ */ (() => {
         condition: error?.name === "ConditionError"
       }
     }));
-    function actionCreator(arg) {
+    function actionCreator(arg, {
+      signal
+    } = {}) {
       return (dispatch, getState, extra) => {
         const requestId = options?.idGenerator ? options.idGenerator(arg) : nanoid();
         const abortController = new AbortController();
@@ -2421,6 +2383,15 @@ var createAsyncThunk = /* @__PURE__ */ (() => {
         function abort(reason) {
           abortReason = reason;
           abortController.abort();
+        }
+        if (signal) {
+          if (signal.aborted) {
+            abort(externalAbortMessage);
+          } else {
+            signal.addEventListener("abort", () => abort(externalAbortMessage), {
+              once: true
+            });
+          }
         }
         const promise = async function() {
           let finalAction;
@@ -2524,7 +2495,7 @@ function isThenable(value) {
 }
 
 // src/createSlice.ts
-var asyncThunkSymbol = Symbol.for("rtk-slice-createasyncthunk");
+var asyncThunkSymbol = /* @__PURE__ */ Symbol.for("rtk-slice-createasyncthunk");
 var asyncThunkCreator = {
   [asyncThunkSymbol]: createAsyncThunk
 };
@@ -2631,15 +2602,14 @@ function buildCreateSlice({
     }
     const selectSelf = (state) => state;
     const injectedSelectorCache = /* @__PURE__ */ new Map();
+    const injectedStateCache = /* @__PURE__ */ new WeakMap();
     let _reducer;
     function reducer(state, action) {
-      if (!_reducer)
-        _reducer = buildReducer();
+      if (!_reducer) _reducer = buildReducer();
       return _reducer(state, action);
     }
     function getInitialState() {
-      if (!_reducer)
-        _reducer = buildReducer();
+      if (!_reducer) _reducer = buildReducer();
       return _reducer.getInitialState();
     }
     function makeSelectorProps(reducerPath2, injected = false) {
@@ -2647,7 +2617,7 @@ function buildCreateSlice({
         let sliceState = state[reducerPath2];
         if (typeof sliceState === "undefined") {
           if (injected) {
-            sliceState = getInitialState();
+            sliceState = getOrInsertComputed(injectedStateCache, selectSlice, getInitialState);
           } else if (process.env.NODE_ENV !== "production") {
             throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(15) : "selectSlice returned undefined for an uninjected slice reducer");
           }
@@ -2655,17 +2625,13 @@ function buildCreateSlice({
         return sliceState;
       }
       function getSelectors(selectState = selectSelf) {
-        const selectorCache = emplace(injectedSelectorCache, injected, {
-          insert: () => /* @__PURE__ */ new WeakMap()
-        });
-        return emplace(selectorCache, selectState, {
-          insert: () => {
-            const map = {};
-            for (const [name2, selector] of Object.entries(options.selectors ?? {})) {
-              map[name2] = wrapSelector(selector, selectState, getInitialState, injected);
-            }
-            return map;
+        const selectorCache = getOrInsertComputed(injectedSelectorCache, injected, () => /* @__PURE__ */ new WeakMap());
+        return getOrInsertComputed(selectorCache, selectState, () => {
+          const map = {};
+          for (const [name2, selector] of Object.entries(options.selectors ?? {})) {
+            map[name2] = wrapSelector(selector, selectState, () => getOrInsertComputed(injectedStateCache, selectState, getInitialState), injected);
           }
+          return map;
         });
       }
       return {
@@ -2717,7 +2683,7 @@ function wrapSelector(selector, selectState, getInitialState, injected) {
   wrapper.unwrapped = selector;
   return wrapper;
 }
-var createSlice = buildCreateSlice();
+var createSlice = /* @__PURE__ */ buildCreateSlice();
 function buildReducerCreators() {
   function asyncThunk(payloadCreator, config) {
     return {
@@ -2819,9 +2785,10 @@ function getInitialEntityState() {
     entities: {}
   };
 }
-function createInitialStateFactory() {
-  function getInitialState(additionalState = {}) {
-    return Object.assign(getInitialEntityState(), additionalState);
+function createInitialStateFactory(stateAdapter) {
+  function getInitialState(additionalState = {}, entities) {
+    const state = Object.assign(getInitialEntityState(), additionalState);
+    return entities ? stateAdapter.setAll(state, entities) : state;
   }
   return {
     getInitialState
@@ -2888,8 +2855,6 @@ function createStateOperator(mutator) {
     return produce(state, runMutator);
   };
 }
-
-// src/entities/utils.ts
 function selectIdValue(entity, selectId) {
   const key = selectId(entity);
   if (process.env.NODE_ENV !== "production" && key === void 0) {
@@ -2903,22 +2868,29 @@ function ensureEntitiesArray(entities) {
   }
   return entities;
 }
+function getCurrent(value) {
+  return isDraft(value) ? current(value) : value;
+}
 function splitAddedUpdatedEntities(newEntities, selectId, state) {
   newEntities = ensureEntitiesArray(newEntities);
+  const existingIdsArray = getCurrent(state.ids);
+  const existingIds = new Set(existingIdsArray);
   const added = [];
+  const addedIds = /* @__PURE__ */ new Set([]);
   const updated = [];
   for (const entity of newEntities) {
     const id = selectIdValue(entity, selectId);
-    if (id in state.entities) {
+    if (existingIds.has(id) || addedIds.has(id)) {
       updated.push({
         id,
         changes: entity
       });
     } else {
+      addedIds.add(id);
       added.push(entity);
     }
   }
-  return [added, updated];
+  return [added, updated, existingIdsArray];
 }
 
 // src/entities/unsorted_state_adapter.ts
@@ -3005,7 +2977,7 @@ function createUnsortedStateAdapter(selectId) {
           // Spreads ignore falsy values, so this works even if there isn't
           // an existing update already at this key
           changes: {
-            ...updatesPerEntity[update.id] ? updatesPerEntity[update.id].changes : null,
+            ...updatesPerEntity[update.id]?.changes,
             ...update.changes
           }
         };
@@ -3025,8 +2997,8 @@ function createUnsortedStateAdapter(selectId) {
   }
   function upsertManyMutably(newEntities, state) {
     const [added, updated] = splitAddedUpdatedEntities(newEntities, selectId, state);
-    updateManyMutably(updated, state);
     addManyMutably(added, state);
+    updateManyMutably(updated, state);
   }
   return {
     removeAll: createSingleArgumentStateOperator(removeAllMutably),
@@ -3045,7 +3017,27 @@ function createUnsortedStateAdapter(selectId) {
 }
 
 // src/entities/sorted_state_adapter.ts
-function createSortedStateAdapter(selectId, sort) {
+function findInsertIndex(sortedItems, item, comparisonFunction) {
+  let lowIndex = 0;
+  let highIndex = sortedItems.length;
+  while (lowIndex < highIndex) {
+    let middleIndex = lowIndex + highIndex >>> 1;
+    const currentItem = sortedItems[middleIndex];
+    const res = comparisonFunction(item, currentItem);
+    if (res >= 0) {
+      lowIndex = middleIndex + 1;
+    } else {
+      highIndex = middleIndex;
+    }
+  }
+  return lowIndex;
+}
+function insert(sortedItems, item, comparisonFunction) {
+  const insertAtIndex = findInsertIndex(sortedItems, item, comparisonFunction);
+  sortedItems.splice(insertAtIndex, 0, item);
+  return sortedItems;
+}
+function createSortedStateAdapter(selectId, comparer) {
   const {
     removeOne,
     removeMany,
@@ -3054,11 +3046,12 @@ function createSortedStateAdapter(selectId, sort) {
   function addOneMutably(entity, state) {
     return addManyMutably([entity], state);
   }
-  function addManyMutably(newEntities, state) {
+  function addManyMutably(newEntities, state, existingIds) {
     newEntities = ensureEntitiesArray(newEntities);
-    const models = newEntities.filter((model) => !(selectIdValue(model, selectId) in state.entities));
+    const existingKeys = new Set(existingIds ?? getCurrent(state.ids));
+    const models = newEntities.filter((model) => !existingKeys.has(selectIdValue(model, selectId)));
     if (models.length !== 0) {
-      merge(models, state);
+      mergeFunction(state, models);
     }
   }
   function setOneMutably(entity, state) {
@@ -3067,20 +3060,24 @@ function createSortedStateAdapter(selectId, sort) {
   function setManyMutably(newEntities, state) {
     newEntities = ensureEntitiesArray(newEntities);
     if (newEntities.length !== 0) {
-      merge(newEntities, state);
+      for (const item of newEntities) {
+        delete state.entities[selectId(item)];
+      }
+      mergeFunction(state, newEntities);
     }
   }
   function setAllMutably(newEntities, state) {
     newEntities = ensureEntitiesArray(newEntities);
     state.entities = {};
     state.ids = [];
-    addManyMutably(newEntities, state);
+    addManyMutably(newEntities, state, []);
   }
   function updateOneMutably(update, state) {
     return updateManyMutably([update], state);
   }
   function updateManyMutably(updates, state) {
     let appliedUpdates = false;
+    let replacedIds = false;
     for (let update of updates) {
       const entity = state.entities[update.id];
       if (!entity) {
@@ -3090,27 +3087,34 @@ function createSortedStateAdapter(selectId, sort) {
       Object.assign(entity, update.changes);
       const newId = selectId(entity);
       if (update.id !== newId) {
+        replacedIds = true;
         delete state.entities[update.id];
+        const oldIndex = state.ids.indexOf(update.id);
+        state.ids[oldIndex] = newId;
         state.entities[newId] = entity;
       }
     }
     if (appliedUpdates) {
-      resortEntities(state);
+      mergeFunction(state, [], appliedUpdates, replacedIds);
     }
   }
   function upsertOneMutably(entity, state) {
     return upsertManyMutably([entity], state);
   }
   function upsertManyMutably(newEntities, state) {
-    const [added, updated] = splitAddedUpdatedEntities(newEntities, selectId, state);
-    updateManyMutably(updated, state);
-    addManyMutably(added, state);
+    const [added, updated, existingIdsArray] = splitAddedUpdatedEntities(newEntities, selectId, state);
+    if (added.length) {
+      addManyMutably(added, state, existingIdsArray);
+    }
+    if (updated.length) {
+      updateManyMutably(updated, state);
+    }
   }
   function areArraysEqual(a, b) {
     if (a.length !== b.length) {
       return false;
     }
-    for (let i = 0; i < a.length && i < b.length; i++) {
+    for (let i = 0; i < a.length; i++) {
       if (a[i] === b[i]) {
         continue;
       }
@@ -3118,23 +3122,38 @@ function createSortedStateAdapter(selectId, sort) {
     }
     return true;
   }
-  function merge(models, state) {
-    models.forEach((model) => {
-      state.entities[selectId(model)] = model;
-    });
-    resortEntities(state);
-  }
-  function resortEntities(state) {
-    const allEntities = Object.values(state.entities);
-    allEntities.sort(sort);
-    const newSortedIds = allEntities.map(selectId);
-    const {
-      ids
-    } = state;
-    if (!areArraysEqual(ids, newSortedIds)) {
+  const mergeFunction = (state, addedItems, appliedUpdates, replacedIds) => {
+    const currentEntities = getCurrent(state.entities);
+    const currentIds = getCurrent(state.ids);
+    const stateEntities = state.entities;
+    let ids = currentIds;
+    if (replacedIds) {
+      ids = new Set(currentIds);
+    }
+    let sortedEntities = [];
+    for (const id of ids) {
+      const entity = currentEntities[id];
+      if (entity) {
+        sortedEntities.push(entity);
+      }
+    }
+    const wasPreviouslyEmpty = sortedEntities.length === 0;
+    for (const item of addedItems) {
+      stateEntities[selectId(item)] = item;
+      if (!wasPreviouslyEmpty) {
+        insert(sortedEntities, item, comparer);
+      }
+    }
+    if (wasPreviouslyEmpty) {
+      sortedEntities = addedItems.slice().sort(comparer);
+    } else if (appliedUpdates) {
+      sortedEntities.sort(comparer);
+    }
+    const newSortedIds = sortedEntities.map(selectId);
+    if (!areArraysEqual(currentIds, newSortedIds)) {
       state.ids = newSortedIds;
     }
-  }
+  };
   return {
     removeOne,
     removeMany,
@@ -3161,9 +3180,9 @@ function createEntityAdapter(options = {}) {
     selectId: (instance) => instance.id,
     ...options
   };
-  const stateFactory = createInitialStateFactory();
-  const selectorsFactory = createSelectorsFactory();
   const stateAdapter = sortComparer ? createSortedStateAdapter(selectId, sortComparer) : createUnsortedStateAdapter(selectId);
+  const stateFactory = createInitialStateFactory(stateAdapter);
+  const selectorsFactory = createSelectorsFactory();
   return {
     selectId,
     sortComparer,
@@ -3194,7 +3213,7 @@ var TaskAbortError = class {
 // src/listenerMiddleware/utils.ts
 var assertFunction = (func, expected) => {
   if (typeof func !== "function") {
-    throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(32) : `${expected} is not a function`);
+    throw new TypeError(process.env.NODE_ENV === "production" ? formatProdErrorMessage(32) : `${expected} is not a function`);
   }
 };
 var noop2 = () => {
@@ -3371,15 +3390,14 @@ var getListenerEntryPropsFrom = (options) => {
     effect
   };
 };
-var createListenerEntry = Object.assign((options) => {
+var createListenerEntry = /* @__PURE__ */ assign((options) => {
   const {
     type,
     predicate,
     effect
   } = getListenerEntryPropsFrom(options);
-  const id = nanoid();
   const entry = {
-    id,
+    id: nanoid(),
     effect,
     type,
     predicate,
@@ -3392,6 +3410,17 @@ var createListenerEntry = Object.assign((options) => {
 }, {
   withTypes: () => createListenerEntry
 });
+var findListenerEntry = (listenerMap, options) => {
+  const {
+    type,
+    effect,
+    predicate
+  } = getListenerEntryPropsFrom(options);
+  return Array.from(listenerMap.values()).find((entry) => {
+    const matchPredicateOrType = typeof type === "string" ? entry.type === type : entry.predicate === predicate;
+    return matchPredicateOrType && entry.effect === effect;
+  });
+};
 var cancelActiveListeners = (entry) => {
   entry.pending.forEach((controller) => {
     abortControllerWithReason(controller, listenerCancelled);
@@ -3412,11 +3441,11 @@ var safelyNotifyError = (errorHandler, errorToNotify, errorInfo) => {
     }, 0);
   }
 };
-var addListener = Object.assign(createAction(`${alm}/add`), {
+var addListener = /* @__PURE__ */ assign(/* @__PURE__ */ createAction(`${alm}/add`), {
   withTypes: () => addListener
 });
-var clearAllListeners = createAction(`${alm}/removeAll`);
-var removeListener = Object.assign(createAction(`${alm}/remove`), {
+var clearAllListeners = /* @__PURE__ */ createAction(`${alm}/removeAll`);
+var removeListener = /* @__PURE__ */ assign(/* @__PURE__ */ createAction(`${alm}/remove`), {
   withTypes: () => removeListener
 });
 var defaultErrorHandler = (...args) => {
@@ -3440,25 +3469,14 @@ var createListenerMiddleware = (middlewareOptions = {}) => {
     };
   };
   const startListening = (options) => {
-    let entry = find(Array.from(listenerMap.values()), (existingEntry) => existingEntry.effect === options.effect);
-    if (!entry) {
-      entry = createListenerEntry(options);
-    }
+    const entry = findListenerEntry(listenerMap, options) ?? createListenerEntry(options);
     return insertEntry(entry);
   };
-  Object.assign(startListening, {
+  assign(startListening, {
     withTypes: () => startListening
   });
   const stopListening = (options) => {
-    const {
-      type,
-      effect,
-      predicate
-    } = getListenerEntryPropsFrom(options);
-    const entry = find(Array.from(listenerMap.values()), (entry2) => {
-      const matchPredicateOrType = typeof type === "string" ? entry2.type === type : entry2.predicate === predicate;
-      return matchPredicateOrType && entry2.effect === effect;
-    });
+    const entry = findListenerEntry(listenerMap, options);
     if (entry) {
       entry.unsubscribe();
       if (options.cancelActive) {
@@ -3467,7 +3485,7 @@ var createListenerMiddleware = (middlewareOptions = {}) => {
     }
     return !!entry;
   };
-  Object.assign(stopListening, {
+  assign(stopListening, {
     withTypes: () => stopListening
   });
   const notifyListener = async (entry, action, api, getOriginalState) => {
@@ -3578,7 +3596,6 @@ var createListenerMiddleware = (middlewareOptions = {}) => {
   };
 };
 var createMiddlewareEntry = (middleware) => ({
-  id: nanoid(),
   middleware,
   applied: /* @__PURE__ */ new Map()
 });
@@ -3596,19 +3613,13 @@ var createDynamicMiddleware = () => {
   });
   const addMiddleware = Object.assign(function addMiddleware2(...middlewares) {
     middlewares.forEach((middleware2) => {
-      let entry = find(Array.from(middlewareMap.values()), (entry2) => entry2.middleware === middleware2);
-      if (!entry) {
-        entry = createMiddlewareEntry(middleware2);
-      }
-      middlewareMap.set(entry.id, entry);
+      getOrInsertComputed(middlewareMap, middleware2, createMiddlewareEntry);
     });
   }, {
     withTypes: () => addMiddleware
   });
   const getFinalMiddleware = (api) => {
-    const appliedMiddleware = Array.from(middlewareMap.values()).map((entry) => emplace(entry.applied, api, {
-      insert: () => entry.middleware(api)
-    }));
+    const appliedMiddleware = Array.from(middlewareMap.values()).map((entry) => getOrInsertComputed(entry.applied, api, entry.middleware));
     return compose(...appliedMiddleware);
   };
   const isWithMiddleware = isAllOf(withMiddleware, matchInstance(instanceId));
@@ -3631,42 +3642,45 @@ var getReducers = (slices) => slices.flatMap((sliceOrMap) => isSliceLike(sliceOr
 var ORIGINAL_STATE = Symbol.for("rtk-state-proxy-original");
 var isStateProxy = (value) => !!value && !!value[ORIGINAL_STATE];
 var stateProxyMap = /* @__PURE__ */ new WeakMap();
-var createStateProxy = (state, reducerMap) => emplace(stateProxyMap, state, {
-  insert: () => new Proxy(state, {
-    get: (target, prop, receiver) => {
-      if (prop === ORIGINAL_STATE)
-        return target;
-      const result = Reflect.get(target, prop, receiver);
-      if (typeof result === "undefined") {
-        const reducer = reducerMap[prop.toString()];
-        if (reducer) {
-          const reducerResult = reducer(void 0, {
-            type: nanoid()
-          });
-          if (typeof reducerResult === "undefined") {
-            throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(24) : `The slice reducer for key "${prop.toString()}" returned undefined when called for selector(). If the state passed to the reducer is undefined, you must explicitly return the initial state. The initial state may not be undefined. If you don't want to set a value for this reducer, you can use null instead of undefined.`);
-          }
-          return reducerResult;
+var createStateProxy = (state, reducerMap, initialStateCache) => getOrInsertComputed(stateProxyMap, state, () => new Proxy(state, {
+  get: (target, prop, receiver) => {
+    if (prop === ORIGINAL_STATE) return target;
+    const result = Reflect.get(target, prop, receiver);
+    if (typeof result === "undefined") {
+      const cached = initialStateCache[prop];
+      if (typeof cached !== "undefined") return cached;
+      const reducer = reducerMap[prop];
+      if (reducer) {
+        const reducerResult = reducer(void 0, {
+          type: nanoid()
+        });
+        if (typeof reducerResult === "undefined") {
+          throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(24) : `The slice reducer for key "${prop.toString()}" returned undefined when called for selector(). If the state passed to the reducer is undefined, you must explicitly return the initial state. The initial state may not be undefined. If you don't want to set a value for this reducer, you can use null instead of undefined.`);
         }
+        initialStateCache[prop] = reducerResult;
+        return reducerResult;
       }
-      return result;
     }
-  })
-});
+    return result;
+  }
+}));
 var original = (state) => {
   if (!isStateProxy(state)) {
     throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(25) : "original must be used on state Proxy");
   }
   return state[ORIGINAL_STATE];
 };
+var emptyObject = {};
+var noopReducer = (state = emptyObject) => state;
 function combineSlices(...slices) {
   const reducerMap = Object.fromEntries(getReducers(slices));
-  const getReducer = () => combineReducers(reducerMap);
+  const getReducer = () => Object.keys(reducerMap).length ? combineReducers(reducerMap) : noopReducer;
   let reducer = getReducer();
   function combinedReducer(state, action) {
     return reducer(state, action);
   }
   combinedReducer.withLazyLoadedSlices = () => combinedReducer;
+  const initialStateCache = {};
   const inject = (slice, config = {}) => {
     const {
       reducerPath,
@@ -3679,13 +3693,16 @@ function combineSlices(...slices) {
       }
       return combinedReducer;
     }
+    if (config.overrideExisting && currentReducer !== reducerToInject) {
+      delete initialStateCache[reducerPath];
+    }
     reducerMap[reducerPath] = reducerToInject;
     reducer = getReducer();
     return combinedReducer;
   };
   const selector = Object.assign(function makeSelector(selectorFn, selectState) {
     return function selector2(state, ...args) {
-      return selectorFn(createStateProxy(selectState ? selectState(state, ...args) : state, reducerMap), ...args);
+      return selectorFn(createStateProxy(selectState ? selectState(state, ...args) : state, reducerMap, initialStateCache), ...args);
     };
   }, {
     original
