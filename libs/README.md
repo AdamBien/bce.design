@@ -12,6 +12,8 @@ To rebuild the dependencies execute:
 
 `rollup -c`
 
+The converted ESM modules are output to the `dist/` directory. The rollup configuration (`rollup.config.js`) handles the conversion process using the node-resolve plugin to bundle dependencies as ES modules.
+
 Currently included:
 
 1. [lit-html](https://lit-html.polymer-project.org)
