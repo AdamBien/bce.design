@@ -7,6 +7,7 @@ Initial installation:
 1. `cd libs`
 2. `npm install`
 
+Update `plugin-node-resolve` plugin with: `npm install @rollup/plugin-node-resolve --save-dev`
 To rebuild the dependencies execute:
 
 `rollup -c`
