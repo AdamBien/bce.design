@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "rollup.config.js",
-  "type":"module",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,8 +11,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^15.2.3",
-    "rollup": "^4.9.6"
+    "@rollup/plugin-node-resolve": "^15.3.1",
+    "rollup": "^4.46.2"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.1.0",
