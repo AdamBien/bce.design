@@ -47,7 +47,7 @@ The e2e tests with configured global code coverage is available from: [codecover
 
 # update dependencies
 
-Checkout [libs](https://github.com/AdamBien/bce.design/tree/main/libs)
+Update `package.json` in [libs](https://github.com/AdamBien/bce.design/tree/main/libs)
 
 # external ingredients
 
