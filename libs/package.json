@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.1.0",
-    "@vaadin/router": "^1.7.5",
+    "@vaadin/router": "^2.0.0",
     "lit-html": "^3.3.1"
   }
 }
