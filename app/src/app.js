@@ -1,4 +1,4 @@
-import { Router } from "./libs/vaadin-router.js";
+import { Router } from "./libs/router.js";
 import './bookmarks/boundary/Bookmarks.js';
 import './bookmarks/boundary/List.js';
 import store from "./store.js";
@@ -9,7 +9,7 @@ store.subscribe(_ => {
     save(state);
 })
 const outlet = document.querySelector('.view');
-const router = new Router(outlet);
+const router = new Router(outlet, {});
 router.setRoutes([
   {path: '/',     component: 'b-list'},
   {path: '/add',  component: 'b-bookmarks'}
