@@ -2,17 +2,11 @@
 
 minimal tooling, essential dependencies, high productivity, no migrations, web component starter for non-trivial web applications
 
+
+
 <img src="https://repository-images.githubusercontent.com/355100926/4731b900-979e-11eb-9014-3b30688cc691" alt="Boundary Control Entity quickstarter -> with web components" height="400"/>
 
 # run
-
-
-## Launch with vite:
-
-1. Install [vite](https://vitejs.dev)
-2. `git clone https://github.com/AdamBien/bce.design`
-3. Perform: `npx vite`
-
 
 ## Launch with browsersync:
 
@@ -21,11 +15,22 @@ minimal tooling, essential dependencies, high productivity, no migrations, web c
 3. `cd app`
 4. Perform: `browser-sync src -f src -b "google chrome" --no-notify`
 
+
+## Launch with vite:
+
+1. Install [vite](https://vitejs.dev)
+2. `git clone https://github.com/AdamBien/bce.design`
+3. Perform: `npx vite`
+
 ## Launch with zws (zero dependencies web server):
 
-If you have installed recent Java or later, you can serve the assets with [zws](https://github.com/adamBien/zws) from `app/src`;
+If you have installed recent Java or later, you can serve the assets with [zws](https://github.com/adamBien/zws) from `app/src`
+with:
+`cd app/src`
+`zws.sh`
 
 [![BCE overview](https://i.ytimg.com/vi/LYzGgCW0OxY/mqdefault.jpg)](https://www.youtube.com/embed/LYzGgCW0OxY?rel=0)
+
 
 
 ## e2e tests
