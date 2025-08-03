@@ -65,11 +65,18 @@ Update `package.json` in [libs](https://github.com/AdamBien/bce.design/tree/main
 
 # what is BCE?
 
-Boundary Control Entity (BCE) pattern is used to organize elements according to their responsibilities:  [https://en.wikipedia.org/wiki/Entity-control-boundary](https://en.wikipedia.org/wiki/Entity-control-boundary).
+Boundary Control Entity (BCE) pattern organizes code by responsibility:
 
-Why it is needed? BCE was published in 1992 and since then described in various books and articles. Also: the boundary, control, entity icons are available in all modelling, drawing and designing tools. 
+- **Boundary**: UI components (Web Components) - user interaction layer
+- **Control**: Business logic and orchestration - application behavior  
+- **Entity**: State management and data models - domain objects
 
-The best of all: with BCE we don't have to discuss the naming anymore and therefore completely ignore the [Parkinson's law of triviality](https://en.wikipedia.org/wiki/Law_of_triviality) :-).
+In this project:
+- `bookmarks/boundary/` - UI components like List.js, Add.js
+- `bookmarks/control/` - Logic like CRUDControl.js
+- `bookmarks/entity/` - State like BookmarksReducer.js
+
+BCE eliminates naming debates and provides instant code organization, helping avoid [Parkinson's law of triviality](https://en.wikipedia.org/wiki/Law_of_triviality). [Learn more about BCE](https://en.wikipedia.org/wiki/Entity-control-boundary)
 
 ## unidirectional data flow
 
