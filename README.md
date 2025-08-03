@@ -2,7 +2,9 @@
 
 minimal tooling, essential dependencies, high productivity, no migrations, web component starter for non-trivial web applications
 
+## Core Architecture
 
+This project implements **unidirectional data flow** using Redux Toolkit for predictable state management. All state changes flow in one direction: Actions → Reducers → Store → View Components. The application follows the Boundary Control Entity (BCE) pattern for clear separation of concerns.
 
 <img src="https://repository-images.githubusercontent.com/355100926/4731b900-979e-11eb-9014-3b30688cc691" alt="Boundary Control Entity quickstarter -> with web components" height="400"/>
 
