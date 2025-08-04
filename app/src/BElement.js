@@ -54,6 +54,12 @@ export default class BElement extends HTMLElement {
         console.groupEnd();
     }
 
+    /**
+     * Performs the view update cycle for the component.
+     * Extracts relevant state from Redux store, generates view template,
+     * and renders it to the DOM using lit-html.
+     * Called automatically on store updates and initial connection.
+     */
     triggerViewUpdate() {
         console.group(this.log('triggerViewUpdate'))
         console.log('Before extraction:', store.getState());
