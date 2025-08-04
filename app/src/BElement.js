@@ -42,6 +42,11 @@ export default class BElement extends HTMLElement {
         console.groupEnd();
     }
 
+    /**
+     * Called when the element is disconnected from the document's DOM.
+     * Cleans up by unsubscribing from Redux store updates.
+     * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements#custom_element_lifecycle_callbacks|MDN: Custom element lifecycle callbacks}
+     */
     disconnectedCallback() {
         console.group(this.log('disconnectedCallback'))
         this.unsubscribe();
