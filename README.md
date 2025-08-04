@@ -31,7 +31,7 @@ This project implements **unidirectional data flow** using Redux Toolkit for pre
 If you have installed recent Java or later, you can serve the assets with [zws](https://github.com/adamBien/zws) from `app/src`
 with:
 `cd app/src`
-`zws.sh`
+Perform: `zws.sh` (which executes the following behind the scenes: `java zws.java`)
 
 [![BCE overview](https://i.ytimg.com/vi/LYzGgCW0OxY/mqdefault.jpg)](https://www.youtube.com/embed/LYzGgCW0OxY?rel=0)
 
