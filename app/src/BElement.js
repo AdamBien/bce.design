@@ -92,8 +92,21 @@ export default class BElement extends HTMLElement {
     }
 
     /**
+     * Generates the lit-html template for the component based on current state.
+     * Subclasses must override this method to define their visual representation.
+     * Called by triggerViewUpdate() during each render cycle.
      * @abstract
-     * @returns {any} - the template to render
+     * @returns {any} - the lit-html template to render
+     * @example
+     * // Simple hello world component
+     * import { html } from './libs/lit-html.js';
+     * 
+     * class HelloWorld extends BElement {
+     *     view() {
+     *         return html`<h1>Hello, World!</h1>`;
+     *     }
+     * }
+     * customElements.define('hello-world', HelloWorld);
      */
     view() {  }
 
