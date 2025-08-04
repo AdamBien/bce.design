@@ -29,6 +29,11 @@ export default class BElement extends HTMLElement {
         return `${this.constructor.name}.${name}`
     }
 
+    /**
+     * Called when the element is connected to the document's DOM.
+     * Sets up Redux store subscription and triggers initial view update.
+     * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements#custom_element_lifecycle_callbacks|MDN: Custom element lifecycle callbacks}
+     */
     connectedCallback() {
         console.group(this.log('connectedCallback'))
         this.unsubscribe = store.subscribe(_ => this.triggerViewUpdate());
