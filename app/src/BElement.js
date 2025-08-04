@@ -80,9 +80,12 @@ export default class BElement extends HTMLElement {
         return this;
     }
     /**
-     * 
+     * Extracts and transforms the component-specific state from the global Redux store.
+     * Subclasses can optionally override this method to select only the state slice they need,
+     * enabling efficient re-renders and component isolation.
+     * By default, returns the entire Redux state.
      * @param {Object} reduxState - the entire state of the redux store 
-     * @returns - a slice of the redux state that is relevant for this component
+     * @returns {Object} - a slice of the redux state that is relevant for this component
      */
     extractState(reduxState) {
         return reduxState;
