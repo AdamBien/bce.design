@@ -33,6 +33,31 @@ with:
 `cd app/src`
 Perform: `zws.sh` (which executes the following behind the scenes: `java zws.java`)
 
+## Launch with Quarkus:
+
+Serve the application as static resources using Quarkus:
+
+1. Copy the `app/src` contents to `src/main/resources/META-INF/resources/`:
+```bash
+cp -r app/src/* [APP_DIR]/src/main/resources/META-INF/resources/
+```
+
+2. Run in development mode:
+```bash
+cd [APP_DIR]
+mvn quarkus:dev
+```
+
+4. Access the application at `http://localhost:8080`
+
+5. Build for production and run:
+```bash
+mvn package
+java -jar target/quarkus-app/quarkus-run.jar
+```
+
+Quarkus automatically serves static files from `META-INF/resources/` and provides production-ready features like compression, caching headers, and efficient resource serving.
+
 [![BCE overview](https://i.ytimg.com/vi/LYzGgCW0OxY/mqdefault.jpg)](https://www.youtube.com/embed/LYzGgCW0OxY?rel=0)
 
 
