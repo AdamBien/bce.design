@@ -1,8 +1,10 @@
 # bce.design
 
-minimal tooling, essential dependencies, high productivity, no migrations, web component starter for non-trivial web applications
+Quickstarter and sample application for building non-trivial web applications with minimal tooling, essential dependencies, high productivity, and no migrations.
 
 Built on web standards and browser APIs - no framework lock-in, just native [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components), [ES modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules), and modern JavaScript
+
+Visit [https://bce.design](https://bce.design) for more information.
 
 ## Core Architecture
 
