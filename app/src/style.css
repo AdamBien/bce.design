@@ -5,7 +5,7 @@ body{
     min-height: 100%;
     width: 80%;
     margin: 0 10% 0 10%;
-
+    container-type: inline-size;
 }
 
 main{
@@ -15,11 +15,11 @@ main{
     border-left: 2px aliceblue solid;
 }
 
-@media screen and (max-width: 40em){
+@container (max-width: 40em){
     main{
         grid-template-rows: 1fr 2fr 6fr 1fr;
         grid-template-columns: 1fr;
-        grid-template-areas: 
+        grid-template-areas:
         "status"
         "menu"
         "view"
@@ -30,11 +30,11 @@ main{
     }
 }
 
-@media screen and (min-width: 40em){
+@container (min-width: 40em){
     main{
         grid-template-rows: 1fr 6fr 1fr;
         grid-template-columns: 1fr 4fr;
-        grid-template-areas: 
+        grid-template-areas:
         "status status"
         "menu view"
         "footer footer";
