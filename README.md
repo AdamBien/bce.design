@@ -127,6 +127,8 @@ BCE eliminates naming debates and provides instant code organization, helping av
 - [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) - Custom Elements, Shadow DOM, HTML Templates
 - [Custom Elements](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) - Define new HTML elements
 - [ES Modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) - Native JavaScript module system
+- [Import Maps](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) - Map bare module specifiers to URLs
+- [Container Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries) - Responsive layouts based on container size
 - [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) - Browser storage for state persistence
 - [JSON](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON) - Data serialization for storage
 - [querySelector/querySelectorAll](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector) - DOM element selection
