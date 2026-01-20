@@ -1,5 +1,5 @@
 import BElement from "../../BElement.js";
-import { html } from "../../libs/lit-html.js";
+import { html } from "lit-html";
 import './Add.js';
 import './Preview.js';
 

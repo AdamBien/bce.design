@@ -1,4 +1,4 @@
-import { render } from "./libs/lit-html.js";
+import { render } from "lit-html";
 import store from "./store.js";
 
 /**

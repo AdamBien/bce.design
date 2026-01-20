@@ -4,7 +4,7 @@
  * for Redux store updates.
  * To deactivate localStorage persistence, comment out or remove the store.subscribe() block.
  */
-import { Router } from "./libs/router.js";
+import { Router } from "@vaadin/router";
 import './bookmarks/boundary/Bookmarks.js';
 import './bookmarks/boundary/List.js';
 import store from "./store.js";

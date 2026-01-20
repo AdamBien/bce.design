@@ -4,7 +4,7 @@
  * enabling state recovery across browser sessions.
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage}
  */
-import { configureStore } from "./libs/redux-toolkit.modern.js";
+import { configureStore } from "@reduxjs/toolkit";
 import { load } from "./localstorage/control/StorageControl.js";
 import { bookmarks } from "./bookmarks/entity/BookmarksReducer.js"
 

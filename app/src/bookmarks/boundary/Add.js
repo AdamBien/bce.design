@@ -1,5 +1,5 @@
 import BElement from "../../BElement.js";
-import { html } from "../../libs/lit-html.js";
+import { html } from "lit-html";
 import { bookmarkUpdated, newBookmark } from "../control/CRUDControl.js";
 class Add extends BElement{
     

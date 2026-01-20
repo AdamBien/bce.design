@@ -1,4 +1,4 @@
-import { createAction } from "../../libs/redux-toolkit.modern.js";
+import { createAction } from "@reduxjs/toolkit";
 import store from "../../store.js";
 
 export const bookmarkUpdatedAction = createAction("bookmarkUpdatedAction");
