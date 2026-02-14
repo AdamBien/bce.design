@@ -374,6 +374,22 @@ function pathToRegexp(path, keys, options) {
     return stringToRegexp(path, keys, options);
 }
 
+const notFoundResult = Symbol("NotFoundResult");
+class NotFoundError extends Error {
+  /**
+   * The HTTP status code to be used when the route is not found.
+   */
+  code;
+  /**
+   * The context object associated with the route that was not found.
+   */
+  context;
+  constructor(context) {
+    super(log(`Page not found (${context.pathname})`));
+    this.context = context;
+    this.code = 404;
+  }
+}
 function isObject(o) {
   return typeof o === "object" && !!o;
 }
@@ -389,16 +405,6 @@ function toArray(value = []) {
 function log(msg) {
   return `[Vaadin.Router] ${msg}`;
 }
-class NotFoundError extends Error {
-  code;
-  context;
-  constructor(context) {
-    super(log(`Page not found (${context.pathname})`));
-    this.context = context;
-    this.code = 404;
-  }
-}
-const notFoundResult = Symbol("NotFoundResult");
 function getNotFoundError(context) {
   return new NotFoundError(context);
 }
@@ -448,7 +454,7 @@ function matchPath(routePath, path, exact = false, parentKeys = [], parentParams
     const key = regexp.keys[i - 1];
     const prop = key.name;
     const value = m[i];
-    if (value !== void 0 || !Object.hasOwn(params, prop)) {
+    if (value !== void 0 || !Object.prototype.hasOwnProperty.call(params, prop)) {
       if (key.modifier === "+" || key.modifier === "*") {
         params[prop] = value ? value.split(/[/?#]/u).map(decodeParam) : [];
       } else {
@@ -551,7 +557,17 @@ function isRouteContext(value) {
   return !!value && typeof value === "object" && "next" in value && "params" in value && "result" in value && "route" in value;
 }
 class ResolutionError extends Error {
+  /**
+   * The resolution error cause, possibly an error thrown from the action callback.
+   */
+  cause;
+  /**
+   * A HTTP status code associated with the error.
+   */
   code;
+  /**
+   * The context object associated with the route that was not found.
+   */
   context;
   constructor(context, options) {
     let errorMessage = `Path '${context.pathname}' is not properly resolved due to an error.`;
@@ -559,10 +575,14 @@ class ResolutionError extends Error {
     if (routePath) {
       errorMessage += ` Resolution had failed on route: '${routePath}'`;
     }
-    super(errorMessage, options);
+    super(errorMessage);
+    this.cause = options?.cause;
     this.code = options?.code;
     this.context = context;
   }
+  /**
+   * Logs the error message to the console as a warning.
+   */
   warn() {
     console.warn(this.message);
   }
@@ -626,9 +646,15 @@ class Resolver {
       chain: []
     };
   }
+  /**
+   * The root route.
+   */
   get root() {
     return this.#root;
   }
+  /**
+   * The current route context.
+   */
   get context() {
     return this.#context;
   }
@@ -740,6 +766,7 @@ class Resolver {
    */
   setRoutes(routes) {
     this.#root.__children = [...toArray(routes)];
+    return {};
   }
   /**
    * If the baseUrl is set, matches the pathname with the router’s baseUrl,
@@ -773,6 +800,7 @@ class Resolver {
     return this.getRoutes();
   }
 }
+var resolver_default = Resolver;
 
 function cacheRoutes(routesByName, route, routes, cacheKeyProvider) {
   const name = route.name ?? cacheKeyProvider?.(route);
@@ -801,7 +829,7 @@ function getRouteByName(routesByName, routeName) {
   return void 0;
 }
 function generateUrls(resolver, options = {}) {
-  if (!(resolver instanceof Resolver)) {
+  if (!(resolver instanceof resolver_default)) {
     throw new TypeError("An instance of Resolver is expected");
   }
   const cache = /* @__PURE__ */ new Map();
@@ -1466,7 +1494,7 @@ function __REGISTER__(feature, vaadinObj = window.Vaadin ??= {}) {
   vaadinObj.registrations ??= [];
   vaadinObj.registrations.push({
     is: "@vaadin/router",
-    version: "2.0.0"
+    version: "2.0.1"
   });
 }
 __REGISTER__();
@@ -1556,7 +1584,10 @@ function createLocation({ chain = [], hash = "", params = {}, pathname = "", red
   const routes = chain.map((item) => item.route);
   return {
     baseUrl: resolver?.baseUrl ?? "",
-    getUrl: (userParams = {}) => resolver ? getPathnameForRouter(compile(getRoutePath(chain))({ ...params, ...userParams }), resolver) : "",
+    getUrl: (userParams = {}) => resolver ? getPathnameForRouter(
+      compile(getRoutePath(chain))({ ...params, ...userParams }),
+      resolver
+    ) : "",
     hash,
     params,
     pathname,
@@ -1749,7 +1780,7 @@ const rootContext = {
     return notFoundResult;
   }
 };
-class Router extends Resolver {
+class Router extends resolver_default {
   /**
    * Contains read-only information about the current router location:
    * pathname, active routes, parameters. See the
@@ -1768,6 +1799,7 @@ class Router extends Resolver {
   #navigationEventHandler = this.#onNavigationEvent.bind(this);
   #lastStartedRenderId = 0;
   #outlet;
+  /** @internal */
   __previousContext;
   #urlForName;
   #appearingContent = null;
@@ -1940,7 +1972,6 @@ class Router extends Resolver {
    * @param skipRender - configure the router but skip rendering the
    *     route corresponding to the current `window.location` values
    */
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   async setRoutes(routes, skipRender = false) {
     this.__previousContext = void 0;
     this.#urlForName = void 0;

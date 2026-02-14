@@ -424,7 +424,7 @@ var errors = process.env.NODE_ENV !== "production" ? [
 function die(error, ...args) {
   if (process.env.NODE_ENV !== "production") {
     const e = errors[error];
-    const msg = typeof e === "function" ? e.apply(null, args) : e;
+    const msg = isFunction(e) ? e.apply(null, args) : e;
     throw new Error(`[Immer] ${msg}`);
   }
   throw new Error(
@@ -433,36 +433,49 @@ function die(error, ...args) {
 }
 
 // src/utils/common.ts
-var getPrototypeOf = Object.getPrototypeOf;
-function isDraft(value) {
-  return !!value && !!value[DRAFT_STATE];
-}
+var O = Object;
+var getPrototypeOf = O.getPrototypeOf;
+var CONSTRUCTOR = "constructor";
+var PROTOTYPE = "prototype";
+var CONFIGURABLE = "configurable";
+var ENUMERABLE = "enumerable";
+var WRITABLE = "writable";
+var VALUE = "value";
+var isDraft = (value) => !!value && !!value[DRAFT_STATE];
 function isDraftable(value) {
   if (!value)
     return false;
-  return isPlainObject(value) || Array.isArray(value) || !!value[DRAFTABLE] || !!value.constructor?.[DRAFTABLE] || isMap(value) || isSet(value);
+  return isPlainObject(value) || isArray(value) || !!value[DRAFTABLE] || !!value[CONSTRUCTOR]?.[DRAFTABLE] || isMap(value) || isSet(value);
 }
-var objectCtorString = Object.prototype.constructor.toString();
+var objectCtorString = O[PROTOTYPE][CONSTRUCTOR].toString();
+var cachedCtorStrings = /* @__PURE__ */ new WeakMap();
 function isPlainObject(value) {
-  if (!value || typeof value !== "object")
+  if (!value || !isObjectish(value))
     return false;
   const proto = getPrototypeOf(value);
-  if (proto === null) {
+  if (proto === null || proto === O[PROTOTYPE])
     return true;
-  }
-  const Ctor = Object.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  const Ctor = O.hasOwnProperty.call(proto, CONSTRUCTOR) && proto[CONSTRUCTOR];
   if (Ctor === Object)
     return true;
-  return typeof Ctor == "function" && Function.toString.call(Ctor) === objectCtorString;
+  if (!isFunction(Ctor))
+    return false;
+  let ctorString = cachedCtorStrings.get(Ctor);
+  if (ctorString === void 0) {
+    ctorString = Function.toString.call(Ctor);
+    cachedCtorStrings.set(Ctor, ctorString);
+  }
+  return ctorString === objectCtorString;
 }
 function original$1(value) {
   if (!isDraft(value))
     die(15, value);
   return value[DRAFT_STATE].base_;
 }
-function each(obj, iter) {
+function each(obj, iter, strict = true) {
   if (getArchtype(obj) === 0 /* Object */) {
-    Reflect.ownKeys(obj).forEach((key) => {
+    const keys = strict ? Reflect.ownKeys(obj) : O.keys(obj);
+    keys.forEach((key) => {
       iter(key, obj[key], obj);
     });
   } else {
@@ -471,20 +484,21 @@ function each(obj, iter) {
 }
 function getArchtype(thing) {
   const state = thing[DRAFT_STATE];
-  return state ? state.type_ : Array.isArray(thing) ? 1 /* Array */ : isMap(thing) ? 2 /* Map */ : isSet(thing) ? 3 /* Set */ : 0 /* Object */;
+  return state ? state.type_ : isArray(thing) ? 1 /* Array */ : isMap(thing) ? 2 /* Map */ : isSet(thing) ? 3 /* Set */ : 0 /* Object */;
 }
-function has(thing, prop) {
-  return getArchtype(thing) === 2 /* Map */ ? thing.has(prop) : Object.prototype.hasOwnProperty.call(thing, prop);
-}
-function set(thing, propOrOldValue, value) {
-  const t = getArchtype(thing);
-  if (t === 2 /* Map */)
+var has = (thing, prop, type = getArchtype(thing)) => type === 2 /* Map */ ? thing.has(prop) : O[PROTOTYPE].hasOwnProperty.call(thing, prop);
+var get = (thing, prop, type = getArchtype(thing)) => (
+  // @ts-ignore
+  type === 2 /* Map */ ? thing.get(prop) : thing[prop]
+);
+var set = (thing, propOrOldValue, value, type = getArchtype(thing)) => {
+  if (type === 2 /* Map */)
     thing.set(propOrOldValue, value);
-  else if (t === 3 /* Set */) {
+  else if (type === 3 /* Set */) {
     thing.add(value);
   } else
     thing[propOrOldValue] = value;
-}
+};
 function is(x, y) {
   if (x === y) {
     return x !== 0 || 1 / x === 1 / y;
@@ -492,15 +506,18 @@ function is(x, y) {
     return x !== x && y !== y;
   }
 }
-function isMap(target) {
-  return target instanceof Map;
+var isArray = Array.isArray;
+var isMap = (target) => target instanceof Map;
+var isSet = (target) => target instanceof Set;
+var isObjectish = (target) => typeof target === "object";
+var isFunction = (target) => typeof target === "function";
+var isBoolean$1 = (target) => typeof target === "boolean";
+function isArrayIndex(value) {
+  const n = +value;
+  return Number.isInteger(n) && String(n) === value;
 }
-function isSet(target) {
-  return target instanceof Set;
-}
-function latest(state) {
-  return state.copy_ || state.base_;
-}
+var latest = (state) => state.copy_ || state.base_;
+var getFinalValue = (state) => state.modified_ ? state.copy_ : state.base_;
 function shallowCopy(base, strict) {
   if (isMap(base)) {
     return new Map(base);
@@ -508,58 +525,77 @@ function shallowCopy(base, strict) {
   if (isSet(base)) {
     return new Set(base);
   }
-  if (Array.isArray(base))
-    return Array.prototype.slice.call(base);
+  if (isArray(base))
+    return Array[PROTOTYPE].slice.call(base);
   const isPlain = isPlainObject(base);
   if (strict === true || strict === "class_only" && !isPlain) {
-    const descriptors = Object.getOwnPropertyDescriptors(base);
+    const descriptors = O.getOwnPropertyDescriptors(base);
     delete descriptors[DRAFT_STATE];
     let keys = Reflect.ownKeys(descriptors);
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
       const desc = descriptors[key];
-      if (desc.writable === false) {
-        desc.writable = true;
-        desc.configurable = true;
+      if (desc[WRITABLE] === false) {
+        desc[WRITABLE] = true;
+        desc[CONFIGURABLE] = true;
       }
       if (desc.get || desc.set)
         descriptors[key] = {
-          configurable: true,
-          writable: true,
+          [CONFIGURABLE]: true,
+          [WRITABLE]: true,
           // could live with !!desc.set as well here...
-          enumerable: desc.enumerable,
-          value: base[key]
+          [ENUMERABLE]: desc[ENUMERABLE],
+          [VALUE]: base[key]
         };
     }
-    return Object.create(getPrototypeOf(base), descriptors);
+    return O.create(getPrototypeOf(base), descriptors);
   } else {
     const proto = getPrototypeOf(base);
     if (proto !== null && isPlain) {
       return { ...base };
     }
-    const obj = Object.create(proto);
-    return Object.assign(obj, base);
+    const obj = O.create(proto);
+    return O.assign(obj, base);
   }
 }
 function freeze(obj, deep = false) {
   if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj))
     return obj;
   if (getArchtype(obj) > 1) {
-    obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections;
+    O.defineProperties(obj, {
+      set: dontMutateMethodOverride,
+      add: dontMutateMethodOverride,
+      clear: dontMutateMethodOverride,
+      delete: dontMutateMethodOverride
+    });
   }
-  Object.freeze(obj);
+  O.freeze(obj);
   if (deep)
-    Object.entries(obj).forEach(([key, value]) => freeze(value, true));
+    each(
+      obj,
+      (_key, value) => {
+        freeze(value, true);
+      },
+      false
+    );
   return obj;
 }
 function dontMutateFrozenCollections() {
   die(2);
 }
+var dontMutateMethodOverride = {
+  [VALUE]: dontMutateFrozenCollections
+};
 function isFrozen(obj) {
-  return Object.isFrozen(obj);
+  if (obj === null || !isObjectish(obj))
+    return true;
+  return O.isFrozen(obj);
 }
 
 // src/utils/plugins.ts
+var PluginMapSet = "MapSet";
+var PluginPatches = "Patches";
+var PluginArrayMethods = "ArrayMethods";
 var plugins = {};
 function getPlugin(pluginKey) {
   const plugin = plugins[pluginKey];
@@ -568,26 +604,27 @@ function getPlugin(pluginKey) {
   }
   return plugin;
 }
+var isPluginLoaded = (pluginKey) => !!plugins[pluginKey];
 
 // src/core/scope.ts
 var currentScope;
-function getCurrentScope() {
-  return currentScope;
-}
-function createScope(parent_, immer_) {
-  return {
-    drafts_: [],
-    parent_,
-    immer_,
-    // Whenever the modified draft contains a draft from another scope, we
-    // need to prevent auto-freezing so the unowned draft can be finalized.
-    canAutoFreeze_: true,
-    unfinalizedDrafts_: 0
-  };
-}
+var getCurrentScope = () => currentScope;
+var createScope = (parent_, immer_) => ({
+  drafts_: [],
+  parent_,
+  immer_,
+  // Whenever the modified draft contains a draft from another scope, we
+  // need to prevent auto-freezing so the unowned draft can be finalized.
+  canAutoFreeze_: true,
+  unfinalizedDrafts_: 0,
+  handledSet_: /* @__PURE__ */ new Set(),
+  processedForPatches_: /* @__PURE__ */ new Set(),
+  mapSetPlugin_: isPluginLoaded(PluginMapSet) ? getPlugin(PluginMapSet) : void 0,
+  arrayMethodsPlugin_: isPluginLoaded(PluginArrayMethods) ? getPlugin(PluginArrayMethods) : void 0
+});
 function usePatchesInScope(scope, patchListener) {
   if (patchListener) {
-    getPlugin("Patches");
+    scope.patchPlugin_ = getPlugin(PluginPatches);
     scope.patches_ = [];
     scope.inversePatches_ = [];
     scope.patchListener_ = patchListener;
@@ -603,9 +640,7 @@ function leaveScope(scope) {
     currentScope = scope.parent_;
   }
 }
-function enterScope(immer2) {
-  return currentScope = createScope(currentScope, immer2);
-}
+var enterScope = (immer2) => currentScope = createScope(currentScope, immer2);
 function revokeDraft(draft) {
   const state = draft[DRAFT_STATE];
   if (state.type_ === 0 /* Object */ || state.type_ === 1 /* Array */)
@@ -626,105 +661,172 @@ function processResult(result, scope) {
     }
     if (isDraftable(result)) {
       result = finalize(scope, result);
-      if (!scope.parent_)
-        maybeFreeze(scope, result);
     }
-    if (scope.patches_) {
-      getPlugin("Patches").generateReplacementPatches_(
+    const { patchPlugin_ } = scope;
+    if (patchPlugin_) {
+      patchPlugin_.generateReplacementPatches_(
         baseDraft[DRAFT_STATE].base_,
         result,
-        scope.patches_,
-        scope.inversePatches_
+        scope
       );
     }
   } else {
-    result = finalize(scope, baseDraft, []);
+    result = finalize(scope, baseDraft);
   }
+  maybeFreeze(scope, result, true);
   revokeScope(scope);
   if (scope.patches_) {
     scope.patchListener_(scope.patches_, scope.inversePatches_);
   }
   return result !== NOTHING ? result : void 0;
 }
-function finalize(rootScope, value, path) {
+function finalize(rootScope, value) {
   if (isFrozen(value))
     return value;
   const state = value[DRAFT_STATE];
   if (!state) {
-    each(
-      value,
-      (key, childValue) => finalizeProperty(rootScope, state, value, key, childValue, path)
-    );
+    const finalValue = handleValue(value, rootScope.handledSet_, rootScope);
+    return finalValue;
+  }
+  if (!isSameScope(state, rootScope)) {
     return value;
   }
-  if (state.scope_ !== rootScope)
-    return value;
   if (!state.modified_) {
-    maybeFreeze(rootScope, state.base_, true);
     return state.base_;
   }
   if (!state.finalized_) {
-    state.finalized_ = true;
-    state.scope_.unfinalizedDrafts_--;
-    const result = state.copy_;
-    let resultEach = result;
-    let isSet2 = false;
-    if (state.type_ === 3 /* Set */) {
-      resultEach = new Set(result);
-      result.clear();
-      isSet2 = true;
+    const { callbacks_ } = state;
+    if (callbacks_) {
+      while (callbacks_.length > 0) {
+        const callback = callbacks_.pop();
+        callback(rootScope);
+      }
     }
-    each(
-      resultEach,
-      (key, childValue) => finalizeProperty(rootScope, state, result, key, childValue, path, isSet2)
-    );
-    maybeFreeze(rootScope, result, false);
-    if (path && rootScope.patches_) {
-      getPlugin("Patches").generatePatches_(
-        state,
-        path,
-        rootScope.patches_,
-        rootScope.inversePatches_
-      );
-    }
+    generatePatchesAndFinalize(state, rootScope);
   }
   return state.copy_;
-}
-function finalizeProperty(rootScope, parentState, targetObject, prop, childValue, rootPath, targetIsSet) {
-  if (process.env.NODE_ENV !== "production" && childValue === targetObject)
-    die(5);
-  if (isDraft(childValue)) {
-    const path = rootPath && parentState && parentState.type_ !== 3 /* Set */ && // Set objects are atomic since they have no keys.
-    !has(parentState.assigned_, prop) ? rootPath.concat(prop) : void 0;
-    const res = finalize(rootScope, childValue, path);
-    set(targetObject, prop, res);
-    if (isDraft(res)) {
-      rootScope.canAutoFreeze_ = false;
-    } else
-      return;
-  } else if (targetIsSet) {
-    targetObject.add(childValue);
-  }
-  if (isDraftable(childValue) && !isFrozen(childValue)) {
-    if (!rootScope.immer_.autoFreeze_ && rootScope.unfinalizedDrafts_ < 1) {
-      return;
-    }
-    finalize(rootScope, childValue);
-    if ((!parentState || !parentState.scope_.parent_) && typeof prop !== "symbol" && Object.prototype.propertyIsEnumerable.call(targetObject, prop))
-      maybeFreeze(rootScope, childValue);
-  }
 }
 function maybeFreeze(scope, value, deep = false) {
   if (!scope.parent_ && scope.immer_.autoFreeze_ && scope.canAutoFreeze_) {
     freeze(value, deep);
   }
 }
+function markStateFinalized(state) {
+  state.finalized_ = true;
+  state.scope_.unfinalizedDrafts_--;
+}
+var isSameScope = (state, rootScope) => state.scope_ === rootScope;
+var EMPTY_LOCATIONS_RESULT = [];
+function updateDraftInParent(parent, draftValue, finalizedValue, originalKey) {
+  const parentCopy = latest(parent);
+  const parentType = parent.type_;
+  if (originalKey !== void 0) {
+    const currentValue = get(parentCopy, originalKey, parentType);
+    if (currentValue === draftValue) {
+      set(parentCopy, originalKey, finalizedValue, parentType);
+      return;
+    }
+  }
+  if (!parent.draftLocations_) {
+    const draftLocations = parent.draftLocations_ = /* @__PURE__ */ new Map();
+    each(parentCopy, (key, value) => {
+      if (isDraft(value)) {
+        const keys = draftLocations.get(value) || [];
+        keys.push(key);
+        draftLocations.set(value, keys);
+      }
+    });
+  }
+  const locations = parent.draftLocations_.get(draftValue) ?? EMPTY_LOCATIONS_RESULT;
+  for (const location of locations) {
+    set(parentCopy, location, finalizedValue, parentType);
+  }
+}
+function registerChildFinalizationCallback(parent, child, key) {
+  parent.callbacks_.push(function childCleanup(rootScope) {
+    const state = child;
+    if (!state || !isSameScope(state, rootScope)) {
+      return;
+    }
+    rootScope.mapSetPlugin_?.fixSetContents(state);
+    const finalizedValue = getFinalValue(state);
+    updateDraftInParent(parent, state.draft_ ?? state, finalizedValue, key);
+    generatePatchesAndFinalize(state, rootScope);
+  });
+}
+function generatePatchesAndFinalize(state, rootScope) {
+  const shouldFinalize = state.modified_ && !state.finalized_ && (state.type_ === 3 /* Set */ || state.type_ === 1 /* Array */ && state.allIndicesReassigned_ || (state.assigned_?.size ?? 0) > 0);
+  if (shouldFinalize) {
+    const { patchPlugin_ } = rootScope;
+    if (patchPlugin_) {
+      const basePath = patchPlugin_.getPath(state);
+      if (basePath) {
+        patchPlugin_.generatePatches_(state, basePath, rootScope);
+      }
+    }
+    markStateFinalized(state);
+  }
+}
+function handleCrossReference(target, key, value) {
+  const { scope_ } = target;
+  if (isDraft(value)) {
+    const state = value[DRAFT_STATE];
+    if (isSameScope(state, scope_)) {
+      state.callbacks_.push(function crossReferenceCleanup() {
+        prepareCopy(target);
+        const finalizedValue = getFinalValue(state);
+        updateDraftInParent(target, value, finalizedValue, key);
+      });
+    }
+  } else if (isDraftable(value)) {
+    target.callbacks_.push(function nestedDraftCleanup() {
+      const targetCopy = latest(target);
+      if (target.type_ === 3 /* Set */) {
+        if (targetCopy.has(value)) {
+          handleValue(value, scope_.handledSet_, scope_);
+        }
+      } else {
+        if (get(targetCopy, key, target.type_) === value) {
+          if (scope_.drafts_.length > 1 && (target.assigned_.get(key) ?? false) === true && target.copy_) {
+            handleValue(
+              get(target.copy_, key, target.type_),
+              scope_.handledSet_,
+              scope_
+            );
+          }
+        }
+      }
+    });
+  }
+}
+function handleValue(target, handledSet, rootScope) {
+  if (!rootScope.immer_.autoFreeze_ && rootScope.unfinalizedDrafts_ < 1) {
+    return target;
+  }
+  if (isDraft(target) || handledSet.has(target) || !isDraftable(target) || isFrozen(target)) {
+    return target;
+  }
+  handledSet.add(target);
+  each(target, (key, value) => {
+    if (isDraft(value)) {
+      const state = value[DRAFT_STATE];
+      if (isSameScope(state, rootScope)) {
+        const updatedValue = getFinalValue(state);
+        set(target, key, updatedValue, target.type_);
+        markStateFinalized(state);
+      }
+    } else if (isDraftable(value)) {
+      handleValue(value, handledSet, rootScope);
+    }
+  });
+  return target;
+}
 
 // src/core/proxy.ts
 function createProxyProxy(base, parent) {
-  const isArray = Array.isArray(base);
+  const baseIsArray = isArray(base);
   const state = {
-    type_: isArray ? 1 /* Array */ : 0 /* Object */,
+    type_: baseIsArray ? 1 /* Array */ : 0 /* Object */,
     // Track which produce call this is associated with.
     scope_: parent ? parent.scope_ : getCurrentScope(),
     // True for both shallow and deep changes.
@@ -732,7 +834,8 @@ function createProxyProxy(base, parent) {
     // Used during finalization.
     finalized_: false,
     // Track which properties have been assigned (true) or deleted (false).
-    assigned_: {},
+    // actually instantiated in `prepareCopy()`
+    assigned_: void 0,
     // The parent draft state.
     parent_: parent,
     // The base state.
@@ -744,34 +847,50 @@ function createProxyProxy(base, parent) {
     copy_: null,
     // Called by the `produce` function.
     revoke_: null,
-    isManual_: false
+    isManual_: false,
+    // `callbacks` actually gets assigned in `createProxy`
+    callbacks_: void 0
   };
   let target = state;
   let traps = objectTraps;
-  if (isArray) {
+  if (baseIsArray) {
     target = [state];
     traps = arrayTraps;
   }
   const { revoke, proxy } = Proxy.revocable(target, traps);
   state.draft_ = proxy;
   state.revoke_ = revoke;
-  return proxy;
+  return [proxy, state];
 }
 var objectTraps = {
   get(state, prop) {
     if (prop === DRAFT_STATE)
       return state;
+    let arrayPlugin = state.scope_.arrayMethodsPlugin_;
+    const isArrayWithStringProp = state.type_ === 1 /* Array */ && typeof prop === "string";
+    if (isArrayWithStringProp) {
+      if (arrayPlugin?.isArrayOperationMethod(prop)) {
+        return arrayPlugin.createMethodInterceptor(state, prop);
+      }
+    }
     const source = latest(state);
-    if (!has(source, prop)) {
+    if (!has(source, prop, state.type_)) {
       return readPropFromProto(state, source, prop);
     }
     const value = source[prop];
     if (state.finalized_ || !isDraftable(value)) {
       return value;
     }
+    if (isArrayWithStringProp && state.operationMethod && arrayPlugin?.isMutatingArrayMethod(
+      state.operationMethod
+    ) && isArrayIndex(prop)) {
+      return value;
+    }
     if (value === peek(state.base_, prop)) {
       prepareCopy(state);
-      return state.copy_[prop] = createProxy(value, state);
+      const childKey = state.type_ === 1 /* Array */ ? +prop : prop;
+      const childDraft = createProxy(state.scope_, value, state, childKey);
+      return state.copy_[childKey] = childDraft;
     }
     return value;
   },
@@ -792,10 +911,10 @@ var objectTraps = {
       const currentState = current2?.[DRAFT_STATE];
       if (currentState && currentState.base_ === value) {
         state.copy_[prop] = value;
-        state.assigned_[prop] = false;
+        state.assigned_.set(prop, false);
         return true;
       }
-      if (is(value, current2) && (value !== void 0 || has(state.base_, prop)))
+      if (is(value, current2) && (value !== void 0 || has(state.base_, prop, state.type_)))
         return true;
       prepareCopy(state);
       markChanged(state);
@@ -805,16 +924,17 @@ var objectTraps = {
     Number.isNaN(value) && Number.isNaN(state.copy_[prop]))
       return true;
     state.copy_[prop] = value;
-    state.assigned_[prop] = true;
+    state.assigned_.set(prop, true);
+    handleCrossReference(state, prop, value);
     return true;
   },
   deleteProperty(state, prop) {
+    prepareCopy(state);
     if (peek(state.base_, prop) !== void 0 || prop in state.base_) {
-      state.assigned_[prop] = false;
-      prepareCopy(state);
+      state.assigned_.set(prop, false);
       markChanged(state);
     } else {
-      delete state.assigned_[prop];
+      state.assigned_.delete(prop);
     }
     if (state.copy_) {
       delete state.copy_[prop];
@@ -829,10 +949,10 @@ var objectTraps = {
     if (!desc)
       return desc;
     return {
-      writable: true,
-      configurable: state.type_ !== 1 /* Array */ || prop !== "length",
-      enumerable: desc.enumerable,
-      value: owner[prop]
+      [WRITABLE]: true,
+      [CONFIGURABLE]: state.type_ !== 1 /* Array */ || prop !== "length",
+      [ENUMERABLE]: desc[ENUMERABLE],
+      [VALUE]: owner[prop]
     };
   },
   defineProperty() {
@@ -846,12 +966,14 @@ var objectTraps = {
   }
 };
 var arrayTraps = {};
-each(objectTraps, (key, fn) => {
+for (let key in objectTraps) {
+  let fn = objectTraps[key];
   arrayTraps[key] = function() {
-    arguments[0] = arguments[0][0];
-    return fn.apply(this, arguments);
+    const args = arguments;
+    args[0] = args[0][0];
+    return fn.apply(this, args);
   };
-});
+}
 arrayTraps.deleteProperty = function(state, prop) {
   if (process.env.NODE_ENV !== "production" && isNaN(parseInt(prop)))
     die(13);
@@ -869,7 +991,7 @@ function peek(draft, prop) {
 }
 function readPropFromProto(state, source, prop) {
   const desc = getDescriptorFromProto(source, prop);
-  return desc ? `value` in desc ? desc.value : (
+  return desc ? VALUE in desc ? desc[VALUE] : (
     // This is a very special case, if the prop is a getter defined by the
     // prototype, we should invoke it with the draft as context!
     desc.get?.call(state.draft_)
@@ -897,6 +1019,7 @@ function markChanged(state) {
 }
 function prepareCopy(state) {
   if (!state.copy_) {
+    state.assigned_ = /* @__PURE__ */ new Map();
     state.copy_ = shallowCopy(
       state.base_,
       state.scope_.immer_.useStrictShallowCopy_
@@ -909,6 +1032,7 @@ var Immer2 = class {
   constructor(config) {
     this.autoFreeze_ = true;
     this.useStrictShallowCopy_ = false;
+    this.useStrictIteration_ = false;
     /**
      * The `produce` function takes a value and a "recipe function" (whose
      * return value often depends on the base state). The recipe function is
@@ -929,7 +1053,7 @@ var Immer2 = class {
      * @returns {any} a new state, or the initial state if nothing was modified
      */
     this.produce = (base, recipe, patchListener) => {
-      if (typeof base === "function" && typeof recipe !== "function") {
+      if (isFunction(base) && !isFunction(recipe)) {
         const defaultBase = recipe;
         recipe = base;
         const self = this;
@@ -937,14 +1061,14 @@ var Immer2 = class {
           return self.produce(base2, (draft) => recipe.call(this, draft, ...args));
         };
       }
-      if (typeof recipe !== "function")
+      if (!isFunction(recipe))
         die(6);
-      if (patchListener !== void 0 && typeof patchListener !== "function")
+      if (patchListener !== void 0 && !isFunction(patchListener))
         die(7);
       let result;
       if (isDraftable(base)) {
         const scope = enterScope(this);
-        const proxy = createProxy(base, void 0);
+        const proxy = createProxy(scope, base, void 0);
         let hasError = true;
         try {
           result = recipe(proxy);
@@ -957,7 +1081,7 @@ var Immer2 = class {
         }
         usePatchesInScope(scope, patchListener);
         return processResult(result, scope);
-      } else if (!base || typeof base !== "object") {
+      } else if (!base || !isObjectish(base)) {
         result = recipe(base);
         if (result === void 0)
           result = base;
@@ -968,7 +1092,10 @@ var Immer2 = class {
         if (patchListener) {
           const p = [];
           const ip = [];
-          getPlugin("Patches").generateReplacementPatches_(base, result, p, ip);
+          getPlugin(PluginPatches).generateReplacementPatches_(base, result, {
+            patches_: p,
+            inversePatches_: ip
+          });
           patchListener(p, ip);
         }
         return result;
@@ -976,7 +1103,7 @@ var Immer2 = class {
         die(1, base);
     };
     this.produceWithPatches = (base, recipe) => {
-      if (typeof base === "function") {
+      if (isFunction(base)) {
         return (state, ...args) => this.produceWithPatches(state, (draft) => base(draft, ...args));
       }
       let patches, inversePatches;
@@ -986,10 +1113,12 @@ var Immer2 = class {
       });
       return [result, patches, inversePatches];
     };
-    if (typeof config?.autoFreeze === "boolean")
+    if (isBoolean$1(config?.autoFreeze))
       this.setAutoFreeze(config.autoFreeze);
-    if (typeof config?.useStrictShallowCopy === "boolean")
+    if (isBoolean$1(config?.useStrictShallowCopy))
       this.setUseStrictShallowCopy(config.useStrictShallowCopy);
+    if (isBoolean$1(config?.useStrictIteration))
+      this.setUseStrictIteration(config.useStrictIteration);
   }
   createDraft(base) {
     if (!isDraftable(base))
@@ -997,7 +1126,7 @@ var Immer2 = class {
     if (isDraft(base))
       base = current(base);
     const scope = enterScope(this);
-    const proxy = createProxy(base, void 0);
+    const proxy = createProxy(scope, base, void 0);
     proxy[DRAFT_STATE].isManual_ = true;
     leaveScope(scope);
     return proxy;
@@ -1026,6 +1155,18 @@ var Immer2 = class {
   setUseStrictShallowCopy(value) {
     this.useStrictShallowCopy_ = value;
   }
+  /**
+   * Pass false to use faster iteration that skips non-enumerable properties
+   * but still handles symbols for compatibility.
+   *
+   * By default, strict iteration is enabled (includes all own properties).
+   */
+  setUseStrictIteration(value) {
+    this.useStrictIteration_ = value;
+  }
+  shouldUseStrictIteration() {
+    return this.useStrictIteration_;
+  }
   applyPatches(base, patches) {
     let i;
     for (i = patches.length - 1; i >= 0; i--) {
@@ -1038,7 +1179,7 @@ var Immer2 = class {
     if (i > -1) {
       patches = patches.slice(i + 1);
     }
-    const applyPatchesImpl = getPlugin("Patches").applyPatches_;
+    const applyPatchesImpl = getPlugin(PluginPatches).applyPatches_;
     if (isDraft(base)) {
       return applyPatchesImpl(base, patches);
     }
@@ -1048,10 +1189,23 @@ var Immer2 = class {
     );
   }
 };
-function createProxy(value, parent) {
-  const draft = isMap(value) ? getPlugin("MapSet").proxyMap_(value, parent) : isSet(value) ? getPlugin("MapSet").proxySet_(value, parent) : createProxyProxy(value, parent);
-  const scope = parent ? parent.scope_ : getCurrentScope();
+function createProxy(rootScope, value, parent, key) {
+  const [draft, state] = isMap(value) ? getPlugin(PluginMapSet).proxyMap_(value, parent) : isSet(value) ? getPlugin(PluginMapSet).proxySet_(value, parent) : createProxyProxy(value, parent);
+  const scope = parent?.scope_ ?? getCurrentScope();
   scope.drafts_.push(draft);
+  state.callbacks_ = parent?.callbacks_ ?? [];
+  state.key_ = key;
+  if (parent && key !== void 0) {
+    registerChildFinalizationCallback(parent, state, key);
+  } else {
+    state.callbacks_.push(function rootDraftCleanup(rootScope2) {
+      rootScope2.mapSetPlugin_?.fixSetContents(state);
+      const { patchPlugin_ } = rootScope2;
+      if (state.modified_ && patchPlugin_) {
+        patchPlugin_.generatePatches_(state, [], rootScope2);
+      }
+    });
+  }
   return draft;
 }
 
@@ -1066,17 +1220,23 @@ function currentImpl(value) {
     return value;
   const state = value[DRAFT_STATE];
   let copy;
+  let strict = true;
   if (state) {
     if (!state.modified_)
       return state.base_;
     state.finalized_ = true;
     copy = shallowCopy(value, state.scope_.immer_.useStrictShallowCopy_);
+    strict = state.scope_.immer_.shouldUseStrictIteration();
   } else {
     copy = shallowCopy(value, true);
   }
-  each(copy, (key, childValue) => {
-    set(copy, key, currentImpl(childValue));
-  });
+  each(
+    copy,
+    (key, childValue) => {
+      set(copy, key, currentImpl(childValue));
+    },
+    strict
+  );
   if (state) {
     state.finalized_ = false;
   }
@@ -1086,14 +1246,6 @@ function currentImpl(value) {
 // src/immer.ts
 var immer = new Immer2();
 var produce = immer.produce;
-immer.produceWithPatches.bind(
-  immer
-);
-immer.setAutoFreeze.bind(immer);
-immer.setUseStrictShallowCopy.bind(immer);
-immer.applyPatches.bind(immer);
-immer.createDraft.bind(immer);
-immer.finishDraft.bind(immer);
 
 // src/devModeChecks/identityFunctionCheck.ts
 var runIdentityFunctionCheck = (resultFunc, inputSelectorsResults, outputSelectorResult) => {
@@ -1538,6 +1690,8 @@ var thunk = createThunkMiddleware();
 var withExtraArgument = createThunkMiddleware;
 
 // src/index.ts
+
+// src/createDraftSafeSelector.ts
 var createDraftSafeSelectorCreator = (...args) => {
   const createSelector2 = createSelectorCreator(...args);
   const createDraftSafeSelector2 = Object.assign((...args2) => {
@@ -1551,6 +1705,8 @@ var createDraftSafeSelectorCreator = (...args) => {
   return createDraftSafeSelector2;
 };
 var createDraftSafeSelector = /* @__PURE__ */ createDraftSafeSelectorCreator(weakMapMemoize);
+
+// src/devtoolsExtension.ts
 var composeWithDevTools = typeof window !== "undefined" && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ : function() {
   if (arguments.length === 0) return void 0;
   if (typeof arguments[0] === "object") return compose;
@@ -1623,6 +1779,8 @@ function createActionCreatorInvariantMiddleware(options = {}) {
     return next(action);
   };
 }
+
+// src/utils.ts
 function getTimeMeasureUtils(maxDelay, fnName) {
   let elapsed = 0;
   return {
@@ -1675,27 +1833,36 @@ function getOrInsertComputed(map, key, compute) {
 function isImmutableDefault(value) {
   return typeof value !== "object" || value == null || Object.isFrozen(value);
 }
-function trackForMutations(isImmutable, ignorePaths, obj) {
-  const trackedProperties = trackProperties(isImmutable, ignorePaths, obj);
+function trackForMutations(isImmutable, ignoredPaths, obj) {
+  const trackedProperties = trackProperties(isImmutable, ignoredPaths, obj);
   return {
     detectMutations() {
-      return detectMutations(isImmutable, ignorePaths, trackedProperties, obj);
+      return detectMutations(isImmutable, ignoredPaths, trackedProperties, obj);
     }
   };
 }
-function trackProperties(isImmutable, ignorePaths = [], obj, path = "", checkedObjects = /* @__PURE__ */ new Set()) {
+function trackProperties(isImmutable, ignoredPaths = [], obj, path = "", checkedObjects = /* @__PURE__ */ new Set()) {
   const tracked = {
     value: obj
   };
   if (!isImmutable(obj) && !checkedObjects.has(obj)) {
     checkedObjects.add(obj);
     tracked.children = {};
+    const hasIgnoredPaths = ignoredPaths.length > 0;
     for (const key in obj) {
-      const childPath = path ? path + "." + key : key;
-      if (ignorePaths.length && ignorePaths.indexOf(childPath) !== -1) {
-        continue;
+      const nestedPath = path ? path + "." + key : key;
+      if (hasIgnoredPaths) {
+        const hasMatches = ignoredPaths.some((ignored) => {
+          if (ignored instanceof RegExp) {
+            return ignored.test(nestedPath);
+          }
+          return nestedPath === ignored;
+        });
+        if (hasMatches) {
+          continue;
+        }
       }
-      tracked.children[key] = trackProperties(isImmutable, ignorePaths, obj[key], childPath);
+      tracked.children[key] = trackProperties(isImmutable, ignoredPaths, obj[key], nestedPath);
     }
   }
   return tracked;
@@ -1803,6 +1970,8 @@ function createImmutableStateInvariantMiddleware(options = {}) {
     };
   }
 }
+
+// src/serializableStateInvariantMiddleware.ts
 function isPlain(val) {
   const type = typeof val;
   return val == null || type === "string" || type === "boolean" || type === "number" || Array.isArray(val) || isPlainObject$1(val);
@@ -2129,6 +2298,21 @@ function executeReducerBuilderCallback(builderCallback) {
       actionsMap[type] = reducer;
       return builder;
     },
+    addAsyncThunk(asyncThunk, reducers) {
+      if (process.env.NODE_ENV !== "production") {
+        if (defaultCaseReducer) {
+          throw new Error(process.env.NODE_ENV === "production" ? formatProdErrorMessage(43) : "`builder.addAsyncThunk` should only be called before calling `builder.addDefaultCase`");
+        }
+      }
+      if (reducers.pending) actionsMap[asyncThunk.pending.type] = reducers.pending;
+      if (reducers.rejected) actionsMap[asyncThunk.rejected.type] = reducers.rejected;
+      if (reducers.fulfilled) actionsMap[asyncThunk.fulfilled.type] = reducers.fulfilled;
+      if (reducers.settled) actionMatchers.push({
+        matcher: asyncThunk.settled,
+        reducer: reducers.settled
+      });
+      return builder;
+    },
     addMatcher(matcher, reducer) {
       if (process.env.NODE_ENV !== "production") {
         if (defaultCaseReducer) {
@@ -2416,7 +2600,9 @@ var createAsyncThunk = /* @__PURE__ */ (() => {
                   message: abortReason || "Aborted"
                 });
               };
-              abortController.signal.addEventListener("abort", abortHandler);
+              abortController.signal.addEventListener("abort", abortHandler, {
+                once: true
+              });
             });
             dispatch(pending(requestId, arg, options?.getPendingMeta?.({
               requestId,
@@ -2829,6 +3015,8 @@ function createSelectorsFactory() {
     getSelectors
   };
 }
+
+// src/entities/state_adapter.ts
 var isDraftTyped = isDraft;
 function createSingleArgumentStateOperator(mutator) {
   const operator = createStateOperator((_, state) => mutator(state));
@@ -2855,6 +3043,8 @@ function createStateOperator(mutator) {
     return produce(state, runMutator);
   };
 }
+
+// src/entities/utils.ts
 function selectIdValue(entity, selectId) {
   const key = selectId(entity);
   if (process.env.NODE_ENV !== "production" && key === void 0) {
@@ -3049,7 +3239,13 @@ function createSortedStateAdapter(selectId, comparer) {
   function addManyMutably(newEntities, state, existingIds) {
     newEntities = ensureEntitiesArray(newEntities);
     const existingKeys = new Set(existingIds ?? getCurrent(state.ids));
-    const models = newEntities.filter((model) => !existingKeys.has(selectIdValue(model, selectId)));
+    const addedKeys = /* @__PURE__ */ new Set();
+    const models = newEntities.filter((model) => {
+      const modelId = selectIdValue(model, selectId);
+      const notAdded = !addedKeys.has(modelId);
+      if (notAdded) addedKeys.add(modelId);
+      return !existingKeys.has(modelId) && notAdded;
+    });
     if (models.length !== 0) {
       mergeFunction(state, models);
     }
@@ -3058,11 +3254,15 @@ function createSortedStateAdapter(selectId, comparer) {
     return setManyMutably([entity], state);
   }
   function setManyMutably(newEntities, state) {
+    let deduplicatedEntities = {};
     newEntities = ensureEntitiesArray(newEntities);
     if (newEntities.length !== 0) {
       for (const item of newEntities) {
-        delete state.entities[selectId(item)];
+        const entityId = selectId(item);
+        deduplicatedEntities[entityId] = item;
+        delete state.entities[entityId];
       }
+      newEntities = ensureEntitiesArray(deduplicatedEntities);
       mergeFunction(state, newEntities);
     }
   }
@@ -3228,29 +3428,11 @@ var addAbortSignalListener = (abortSignal, callback) => {
   });
   return () => abortSignal.removeEventListener("abort", callback);
 };
-var abortControllerWithReason = (abortController, reason) => {
-  const signal = abortController.signal;
-  if (signal.aborted) {
-    return;
-  }
-  if (!("reason" in signal)) {
-    Object.defineProperty(signal, "reason", {
-      enumerable: true,
-      value: reason,
-      configurable: true,
-      writable: true
-    });
-  }
-  abortController.abort(reason);
-};
 
 // src/listenerMiddleware/task.ts
 var validateActive = (signal) => {
   if (signal.aborted) {
-    const {
-      reason
-    } = signal;
-    throw new TaskAbortError(reason);
+    throw new TaskAbortError(signal.reason);
   }
 };
 function raceWithSignal(signal, promise) {
@@ -3306,7 +3488,7 @@ var {
 var INTERNAL_NIL_TOKEN = {};
 var alm = "listenerMiddleware";
 var createFork = (parentAbortSignal, parentBlockingPromises) => {
-  const linkControllers = (controller) => addAbortSignalListener(parentAbortSignal, () => abortControllerWithReason(controller, parentAbortSignal.reason));
+  const linkControllers = (controller) => addAbortSignalListener(parentAbortSignal, () => controller.abort(parentAbortSignal.reason));
   return (taskExecutor, opts) => {
     assertFunction(taskExecutor, "taskExecutor");
     const childAbortController = new AbortController();
@@ -3321,14 +3503,14 @@ var createFork = (parentAbortSignal, parentBlockingPromises) => {
       });
       validateActive(childAbortController.signal);
       return result2;
-    }, () => abortControllerWithReason(childAbortController, taskCompleted));
+    }, () => childAbortController.abort(taskCompleted));
     if (opts?.autoJoin) {
       parentBlockingPromises.push(result.catch(noop2));
     }
     return {
       result: createPause(parentAbortSignal)(result),
       cancel() {
-        abortControllerWithReason(childAbortController, taskCancelled);
+        childAbortController.abort(taskCancelled);
       }
     };
   };
@@ -3423,12 +3605,14 @@ var findListenerEntry = (listenerMap, options) => {
 };
 var cancelActiveListeners = (entry) => {
   entry.pending.forEach((controller) => {
-    abortControllerWithReason(controller, listenerCancelled);
+    controller.abort(listenerCancelled);
   });
 };
-var createClearListenerMiddleware = (listenerMap) => {
+var createClearListenerMiddleware = (listenerMap, executingListeners) => {
   return () => {
-    listenerMap.forEach(cancelActiveListeners);
+    for (const listener2 of executingListeners.keys()) {
+      cancelActiveListeners(listener2);
+    }
     listenerMap.clear();
   };
 };
@@ -3453,6 +3637,19 @@ var defaultErrorHandler = (...args) => {
 };
 var createListenerMiddleware = (middlewareOptions = {}) => {
   const listenerMap = /* @__PURE__ */ new Map();
+  const executingListeners = /* @__PURE__ */ new Map();
+  const trackExecutingListener = (entry) => {
+    const count = executingListeners.get(entry) ?? 0;
+    executingListeners.set(entry, count + 1);
+  };
+  const untrackExecutingListener = (entry) => {
+    const count = executingListeners.get(entry) ?? 1;
+    if (count === 1) {
+      executingListeners.delete(entry);
+    } else {
+      executingListeners.set(entry, count - 1);
+    }
+  };
   const {
     extra,
     onError = defaultErrorHandler
@@ -3494,6 +3691,7 @@ var createListenerMiddleware = (middlewareOptions = {}) => {
     const autoJoinPromises = [];
     try {
       entry.pending.add(internalTaskController);
+      trackExecutingListener(entry);
       await Promise.resolve(entry.effect(
         action,
         // Use assign() rather than ... to avoid extra helper functions added to bundle
@@ -3513,13 +3711,13 @@ var createListenerMiddleware = (middlewareOptions = {}) => {
           cancelActiveListeners: () => {
             entry.pending.forEach((controller, _, set) => {
               if (controller !== internalTaskController) {
-                abortControllerWithReason(controller, listenerCancelled);
+                controller.abort(listenerCancelled);
                 set.delete(controller);
               }
             });
           },
           cancel: () => {
-            abortControllerWithReason(internalTaskController, listenerCancelled);
+            internalTaskController.abort(listenerCancelled);
             entry.pending.delete(internalTaskController);
           },
           throwIfCancelled: () => {
@@ -3535,11 +3733,12 @@ var createListenerMiddleware = (middlewareOptions = {}) => {
       }
     } finally {
       await Promise.all(autoJoinPromises);
-      abortControllerWithReason(internalTaskController, listenerCompleted);
+      internalTaskController.abort(listenerCompleted);
+      untrackExecutingListener(entry);
       entry.pending.delete(internalTaskController);
     }
   };
-  const clearListenerMiddleware = createClearListenerMiddleware(listenerMap);
+  const clearListenerMiddleware = createClearListenerMiddleware(listenerMap, executingListeners);
   const middleware = (api) => (next) => (action) => {
     if (!isAction(action)) {
       return next(action);
@@ -3595,6 +3794,8 @@ var createListenerMiddleware = (middlewareOptions = {}) => {
     clearListeners: clearListenerMiddleware
   };
 };
+
+// src/dynamicMiddleware/index.ts
 var createMiddlewareEntry = (middleware) => ({
   middleware,
   applied: /* @__PURE__ */ new Map()
