@@ -13,7 +13,8 @@ export const initRouter = (outlet, routeConfig) => {
     const render = url => {
         const route = routes.find(({ pattern }) => pattern.test(url));
         if (!route) return false;
-        outlet.replaceChildren(document.createElement(route.component));
+        var routeComponent = document.createElement(route.component);
+        outlet.replaceChildren(routeComponent);
         return true;
     };
 
