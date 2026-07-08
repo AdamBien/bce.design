@@ -18,7 +18,6 @@ Currently included:
 
 1. [lit-html](https://lit-html.polymer-project.org)
 2. [redux toolkit](https://redux-toolkit.js.org/tutorials/quick-start)
-3. [vaadin router](https://vaadin.com/router)
 
 The bulma.css was directly downloaded from [bulma.io](https://bulma.io). There are multiple alternatives available:
 

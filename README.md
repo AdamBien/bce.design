@@ -89,8 +89,9 @@ Update `package.json` in [libs](https://github.com/AdamBien/bce.design/tree/main
 
 1. [lit-html](https://lit.dev/docs/libraries/standalone-templates/)
 2. [redux toolkit](https://redux-toolkit.js.org)
-3. [vaadin router](https://vaadin.com/router) (suggestion / optional)
-4. [rollup](https://rollupjs.org/) (for updates / optional)
+3. [rollup](https://rollupjs.org/) (for updates / optional)
+
+Client-side routing is implemented with web standards: the [Navigation API](https://developer.mozilla.org/en-US/docs/Web/API/Navigation_API) and [URLPattern](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern) — no router dependency required.
 
 # what is BCE?
 
@@ -110,10 +111,6 @@ BCE eliminates naming debates and provides instant code organization, helping av
 ## unidirectional data flow
 
 [![unidirectional data flow](https://i.ytimg.com/vi/zjtaLLs2eSM/mqdefault.jpg)](https://www.youtube.com/embed/zjtaLLs2eSM?rel=0)
-
-## vaadin router
-
-[![vaadin router intro](https://i.ytimg.com/vi/Fxi9YdM0qFw/mqdefault.jpg)](https://www.youtube.com/watch?v=Fxi9YdM0qFw)
 
 ## static hosting on Amazon S3
 
