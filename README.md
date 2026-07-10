@@ -14,28 +14,34 @@ This project implements **unidirectional data flow** using Redux Toolkit for pre
 
 # run
 
-## Launch with browsersync:
+Serve `app/src` with any static web server that falls back to `index.html` for unknown paths (required for client-side routing).
+
+## Launch with browsersync
 
 1. Install [browsersync](https://www.browsersync.io)
 2. `git clone https://github.com/AdamBien/bce.design`
 3. `cd app`
-4. Perform: `browser-sync src -f src -b "google chrome" --no-notify`
+4. Run: `browser-sync src -f src -b "google chrome" --no-notify`
 
+## Launch with serve
 
-## Launch with vite:
+```bash
+cd app
+npx serve -s src
+```
 
-1. Install [vite](https://vitejs.dev)
-2. `git clone https://github.com/AdamBien/bce.design`
-3. Perform: `npx vite`
+## Launch with zws (zero dependencies web server)
 
-## Launch with zws (zero dependencies web server):
+With a recent Java installation, serve the assets with [zws](https://github.com/adamBien/zws):
 
-If you have installed recent Java or later, you can serve the assets with [zws](https://github.com/adamBien/zws) from `app/src`
-with:
-`cd app/src`
-Perform: `zws.sh` (which executes the following behind the scenes: `java zws.java`)
+```bash
+cd app/src
+zws.sh
+```
 
-## Launch with Quarkus:
+Note: zws has no `index.html` fallback — enter the app at `/`; deep links like `/add` return 404.
+
+## Launch with Quarkus
 
 Serve the application as static resources using Quarkus:
 
@@ -50,9 +56,9 @@ cd [APP_DIR]
 mvn quarkus:dev
 ```
 
-4. Access the application at `http://localhost:8080`
+3. Access the application at `http://localhost:8080`
 
-5. Build for production and run:
+4. Build for production and run:
 ```bash
 mvn package
 java -jar target/quarkus-app/quarkus-run.jar
@@ -83,7 +89,13 @@ The e2e tests with configured global code coverage is available from: [codecover
 
 # update dependencies
 
-Update `package.json` in [libs](https://github.com/AdamBien/bce.design/tree/main/libs)
+Runtime dependencies (lit-html, Redux Toolkit) are bundled as ES modules into `app/src/libs/` and mapped via the import map in `index.html`. To update, edit `package.json` in [libs](https://github.com/AdamBien/bce.design/tree/main/libs), then:
+
+```bash
+cd libs
+npm install
+npx rollup -c
+```
 
 # external ingredients
 
@@ -134,12 +146,17 @@ BCE eliminates naming debates and provides instant code organization, helping av
 - [Arrow Functions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions) - Concise function syntax
 - [Destructuring](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment) - Extract values from objects/arrays
 - [Spread Syntax](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax) - Expand arrays/objects
-- [HTML5 History API](https://developer.mozilla.org/en-US/docs/Web/API/History_API) - Client-side routing support
+- [Navigation API](https://developer.mozilla.org/en-US/docs/Web/API/Navigation_API) - Intercepts same-origin navigations for client-side routing
+- [URLPattern](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern) - Route matching without a router dependency
 
 ## Testing & Development Tools
 
-https://github.com/adambien/mockend is useful as a mock backend with throttling functionality. 
+[mockend](https://github.com/adambien/mockend) serves as a mock backend with throttling functionality.
 
-Mockend can slow down responses, what simplifies the testing of asynchronous view updates. Fetch-requests in the `control` layer can be delayed for test purposes.
+Mockend can slow down responses, which simplifies the testing of asynchronous view updates. Fetch requests in the `control` layer can be delayed for test purposes.
 
 Article: [Web Components, Boundary Control Entity (BCE) and Unidirectional Data Flow with redux](https://adambien.blog/roller/abien/entry/web_components_boundary_control_entity)
+
+# AI coding agents
+
+Guidance for AI coding agents (Claude Code, Codex, Gemini CLI, ...) is maintained in [AGENTS.md](./AGENTS.md).
