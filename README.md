@@ -119,6 +119,8 @@ In this project:
 - `bookmarks/control/` - Logic like CRUDControl.js
 - `bookmarks/entity/` - State like BookmarksReducer.js
 
+The `bookmarks` BC is the sample business component that keeps this template runnable and testable. After cloning, remove or replace it with your own BCs. Removing it touches four coupling points: the imports and the route registrations in `app/src/app.js`, the `bookmarks` reducer registration in `app/src/store.js`, the `<h1>` title in `app/src/index.html`, and the e2e specs in `tests/` and `codecoverage/`.
+
 BCE eliminates naming debates and provides instant code organization, helping avoid [Parkinson's law of triviality](https://en.wikipedia.org/wiki/Law_of_triviality). [Learn more about BCE](https://en.wikipedia.org/wiki/Entity-control-boundary)
 
 ## unidirectional data flow
