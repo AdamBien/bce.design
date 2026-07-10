@@ -4,6 +4,9 @@ Quickstarter and sample application for building non-trivial web applications wi
 
 Built on web standards and browser APIs - no framework lock-in, just native [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components), [ES modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules), and modern JavaScript
 
+> [!TIP]
+> LLMs love stable web standards: [airails.dev](https://airails.dev) ...and developers predictability: [sbce.dev](https://sbce.dev). This project's architecture rules are captured in the [web-components skill](https://github.com/AdamBien/airails/tree/main/web/web-components).
+
 Visit [https://bce.design](https://bce.design) for more information.
 
 ## Core Architecture
