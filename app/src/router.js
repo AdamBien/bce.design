@@ -2,6 +2,8 @@
  * Minimal, standards-based client-side router.
  * URLPattern matches routes and the Navigation API intercepts same-origin
  * navigations (link clicks, back / forward) with built-in focus and scroll handling.
+ * Named path parameters (e.g. /edit/:bookmarkId) are passed to the routed
+ * component as attributes.
  * Non-matching URLs fall through to regular browser navigation.
  * Reloads also fire an interceptable navigate event — intercepting would turn
  * them into same-document re-renders with stale modules and in-memory state,
@@ -14,9 +16,14 @@ export const initRouter = (outlet, routeConfig) => {
     }));
 
     const render = url => {
-        const route = routes.find(({ pattern }) => pattern.test(url));
-        if (!route) return false;
-        var routeComponent = document.createElement(route.component);
+        const match = routes
+            .map(({ pattern, component }) => ({ result: pattern.exec(url), component }))
+            .find(({ result }) => result);
+        if (!match) return false;
+        var routeComponent = document.createElement(match.component);
+        Object.entries(match.result.pathname.groups)
+            .filter(([, value]) => value !== undefined)
+            .forEach(([name, value]) => routeComponent.setAttribute(name, value));
         outlet.replaceChildren(routeComponent);
         return true;
     };

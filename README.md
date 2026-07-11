@@ -22,7 +22,9 @@ Serve `app/src` with any static web server that falls back to `index.html` for u
 1. Install [browsersync](https://www.browsersync.io)
 2. `git clone https://github.com/AdamBien/bce.design`
 3. `cd app`
-4. Run: `browser-sync src -f src -b "google chrome" --no-notify`
+4. Run: `browser-sync src -f src -b "google chrome" --no-notify --single`
+
+The `--single` flag serves `index.html` for unknown paths — required for deep links like `/add`.
 
 ## Launch with serve
 
@@ -37,10 +39,10 @@ With a recent Java installation, serve the assets with [zws](https://github.com/
 
 ```bash
 cd app/src
-zws.sh
+zws.sh --single
 ```
 
-Note: zws has no `index.html` fallback — enter the app at `/`; deep links like `/add` return 404.
+The `--single` flag enables the `index.html` fallback for client-side routes; without it, deep links like `/add` return 404.
 
 ## Launch with Quarkus
 
@@ -105,6 +107,22 @@ npx rollup -c
 3. [rollup](https://rollupjs.org/) (for updates / optional)
 
 Client-side routing is implemented with web standards: the [Navigation API](https://developer.mozilla.org/en-US/docs/Web/API/Navigation_API) and [URLPattern](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern) — no router dependency required.
+
+# standards-based routing
+
+`app/src/app.js` declares the route table, `app/src/router.js` implements the mechanics in ~30 lines:
+
+```javascript
+initRouter(document.querySelector('.view'), [
+    { path: '/',                 component: 'b-list' },
+    { path: '/add',              component: 'b-bookmarks' },
+    { path: '/edit/:bookmarkId', component: 'b-bookmarks' }
+]);
+```
+
+Navigation is plain HTML: any `<a href="/add">` whose URL matches a route is intercepted by the Navigation API and rendered client-side — no `Router.go()`, no link components. URLPattern uses the same `:param` syntax as router libraries (both inherit it from `path-to-regexp`); named path parameters are passed to the routed component as attributes. The edit view demonstrates the pattern: the list renders `<a href="/edit/${bookmark.id}">`, the router creates `<b-bookmarks bookmarkid="...">`, and the component loads the bookmark into the form through the control layer.
+
+Deliberate non-features: URLs matching no route fall through to regular browser navigation (external links keep working), and reloads are never intercepted (reload means reload). Both imply the serving requirement above — unknown paths must fall back to `index.html`.
 
 # what is BCE?
 

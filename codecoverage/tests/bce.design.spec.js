@@ -62,6 +62,22 @@ test('add bookmark', async () => {
   await expect(page.getByRole('link', { name: labelText })).toBeVisible();
 });
 
+test('edit bookmark', async () => {
+  await page.getByRole('link', { name: 'list' }).click();
+  await page.getByRole('link', { name: 'edit' }).click();
+
+  const labelTxt = page.getByLabel('label');
+  await expect(labelTxt).toHaveValue("airhacks news");
+
+  var editedLabel = "airhacks live";
+  await labelTxt.press('ControlOrMeta+a');
+  await labelTxt.pressSequentially(editedLabel, {delay: 100});
+  await page.getByRole('button', { name: 'save bookmark' }).click();
+
+  await page.getByRole('link', { name: 'list' }).click();
+  await expect(page.getByText(editedLabel)).toBeVisible();
+});
+
 test.afterAll(async () => {
   const [jsCoverage, cssCoverage] = await Promise.all([
     page.coverage.stopJSCoverage(),

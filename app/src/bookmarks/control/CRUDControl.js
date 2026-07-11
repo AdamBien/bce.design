@@ -16,10 +16,23 @@ export const bookmarkUpdated = (name, value) => {
     store.dispatch(bookmarkUpdatedAction({name,value}));
 }
 
-export const newBookmarkAction = createAction("newBookmarkAction");
-export const newBookmark = _ => {
+export const editBookmarkAction = createAction("editBookmarkAction");
+
+/**
+ * Loads the bookmark with the given id from the list into the temporal
+ * cache for editing. Route parameters arrive as attribute strings — the id
+ * is converted back to the numeric form used in the list. A missing id
+ * resets the cache, yielding an empty form.
+ * @param {string|null} id bookmark id from the route parameter
+ */
+export const editBookmark = (id) => {
+    store.dispatch(editBookmarkAction(Number(id)));
+}
+
+export const saveBookmarkAction = createAction("saveBookmarkAction");
+export const saveBookmark = _ => {
     const id = Date.now();
-    store.dispatch(newBookmarkAction(id));
+    store.dispatch(saveBookmarkAction(id));
 }
 
 export const deleteBookmarkAction = createAction("deleteBookmarkAction");

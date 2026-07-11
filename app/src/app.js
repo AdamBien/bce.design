@@ -16,7 +16,8 @@ store.subscribe(_ => {
     save(state);
 })
 initRouter(document.querySelector('.view'), [
-    { path: '/',    component: 'b-list' },
-    { path: '/add', component: 'b-bookmarks' }
+    { path: '/',                 component: 'b-list' },
+    { path: '/add',              component: 'b-bookmarks' },
+    { path: '/edit/:bookmarkId', component: 'b-bookmarks' }
 ]);
 console.log("router initialized");

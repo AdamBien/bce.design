@@ -2,15 +2,18 @@
 <html>
 <head>
   <title>[BCE template]</title>
-  <link rel="stylesheet" href="bulma.css">
-  <link rel="stylesheet" href="style.css">
+  <!-- root-absolute URLs: with the index.html fallback, this document is also
+       served for nested routes like /edit/17 — relative URLs would resolve
+       against /edit/ and 404 -->
+  <link rel="stylesheet" href="/bulma.css">
+  <link rel="stylesheet" href="/style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="shortcut icon" type="images/png" href="images/favicon.png">
+  <link rel="shortcut icon" type="images/png" href="/images/favicon.png">
   <script type="importmap">
   {
     "imports": {
-      "lit-html": "./libs/lit-html.js",
-      "@reduxjs/toolkit": "./libs/redux-toolkit.modern.js"
+      "lit-html": "/libs/lit-html.js",
+      "@reduxjs/toolkit": "/libs/redux-toolkit.modern.js"
     }
   }
   </script>
@@ -31,7 +34,7 @@
     </section>
     <footer>powered by: <a href="https://airhacks.live">airhacks.live</a></footer>
   </main>
-  <script src="init.js"></script>
-  <script src="app.js" type="module"></script>
+  <script src="/init.js"></script>
+  <script src="/app.js" type="module"></script>
 </body>
 </html>
