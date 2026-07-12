@@ -10,13 +10,13 @@ class Add extends BElement{
     view() {
         return html`
         <form>
-            <label class="label">Label:
-                <input class="input is-primary" required name="label" placeholder="label" .value="${this.state.label ?? ''}" @keyup=${e=>this.onUserInput(e)} >
+            <label>Label:
+                <input required name="label" placeholder="label" .value="${this.state.label ?? ''}" @keyup=${e=>this.onUserInput(e)} >
             </label>
-            <label class="label">Link:
-                <input class="input is-primary" required name="link" placeholder="link" .value="${this.state.link ?? ''}" @keyup=${e=>this.onUserInput(e)} >
+            <label>Link:
+                <input required name="link" placeholder="link" .value="${this.state.link ?? ''}" @keyup=${e=>this.onUserInput(e)} >
             </label>
-            <button class="button is-primary" @click="${e => this.saveBookmark(e)}">${this.state.id ? "save bookmark" : "new bookmark"}</button>
+            <button @click="${e => this.saveBookmark(e)}">${this.state.id ? "save bookmark" : "new bookmark"}</button>
         </form>
         `;
     }

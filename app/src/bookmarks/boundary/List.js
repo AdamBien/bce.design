@@ -10,14 +10,12 @@ class List extends BElement {
 
     view() {
         return html`
-        <div class="content">
-            <ol>
-                ${this.state.map(bookmark =>
-                    html`
-                        <li><span>${bookmark.label} [<a href="${bookmark.link}" target="_blank">${bookmark.link}</a>]</span> <a href="/edit/${bookmark.id}" class="button is-small is-light">edit</a> <button @click="${_ => deleteBookmark(bookmark.id)}" class="button is-small is-danger is-light">delete</button></li>
-                    `)}
-            </ol>
-        </div>
+        <ol>
+            ${this.state.map(bookmark =>
+                html`
+                    <li><span>${bookmark.label} [<a href="${bookmark.link}" target="_blank">${bookmark.link}</a>]</span> <a href="/edit/${bookmark.id}">edit</a> <button @click="${_ => deleteBookmark(bookmark.id)}">delete</button></li>
+                `)}
+        </ol>
         `;
     }
 }
