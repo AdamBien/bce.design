@@ -19,6 +19,16 @@ Two interchangeable store implementations are provided, selected via the import 
 
 Serve `app/src` with any static web server that falls back to `index.html` for unknown paths (required for client-side routing).
 
+## Launch with zws (zero dependencies web server)
+
+With a recent Java installation, serve the assets with [zws](https://github.com/adamBien/zws):
+
+```bash
+cd app/src
+zws.sh --single
+```
+
+
 ## Launch with browsersync
 
 1. Install [browsersync](https://www.browsersync.io)
@@ -33,15 +43,6 @@ The `--single` flag serves `index.html` for unknown paths — required for deep 
 ```bash
 cd app
 npx serve -s src
-```
-
-## Launch with zws (zero dependencies web server)
-
-With a recent Java installation, serve the assets with [zws](https://github.com/adamBien/zws):
-
-```bash
-cd app/src
-zws.sh --single
 ```
 
 The `--single` flag enables the `index.html` fallback for client-side routes; without it, deep links like `/add` return 404.
