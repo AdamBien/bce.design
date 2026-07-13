@@ -9,7 +9,9 @@ Built on web standards and browser APIs - no framework lock-in, just native [Web
 
 ## Core Architecture
 
-This project implements **unidirectional data flow** using Redux Toolkit for predictable state management. All state changes flow in one direction: Actions → Reducers → Store → View Components. The application follows the Boundary Control Entity (BCE) pattern for clear separation of concerns.
+This project implements **unidirectional data flow** with a Redux-style store for predictable state management. All state changes flow in one direction: Actions → Reducers → Store → View Components. The application follows the Boundary Control Entity (BCE) pattern for clear separation of concerns.
+
+Two interchangeable store implementations are provided, selected via the import map in `app/src/index.html`: [reduction.js](app/src/reduction.js) (active default) — a minimal, standards-based implementation of the used Redux Toolkit API (`configureStore`, `createAction`, `createReducer`) that relies on [structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone) instead of Immer — or the original [Redux Toolkit](https://redux-toolkit.js.org) bundled in `app/src/libs/`. Application code imports `@reduxjs/toolkit` either way; switching is a one-line import map change.
 
 <img src="https://repository-images.githubusercontent.com/355100926/4731b900-979e-11eb-9014-3b30688cc691" alt="Boundary Control Entity quickstarter -> with web components" height="400"/>
 
@@ -103,7 +105,7 @@ npx rollup -c
 # external ingredients
 
 1. [lit-html](https://lit.dev/docs/libraries/standalone-templates/)
-2. [redux toolkit](https://redux-toolkit.js.org)
+2. [redux toolkit](https://redux-toolkit.js.org) (optional — [reduction.js](app/src/reduction.js), a minimal built-in implementation of the used API, is the active default; switch via the import map in `index.html`)
 3. [rollup](https://rollupjs.org/) (for updates / optional)
 
 Client-side routing is implemented with web standards: the [Navigation API](https://developer.mozilla.org/en-US/docs/Web/API/Navigation_API) and [URLPattern](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern) — no router dependency required.
@@ -160,6 +162,7 @@ BCE eliminates naming debates and provides instant code organization, helping av
 - [Import Maps](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) - Map bare module specifiers to URLs
 - [Container Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries) - Responsive layouts based on container size
 - [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) - Browser storage for state persistence
+- [structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone) - Immutable state updates in reduction.js, replacing Immer
 - [JSON](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON) - Data serialization for storage
 - [querySelector/querySelectorAll](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector) - DOM element selection
 - [ES6 Classes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes) - JavaScript class syntax
