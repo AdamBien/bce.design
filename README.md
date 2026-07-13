@@ -145,6 +145,29 @@ BCE eliminates naming debates and provides instant code organization, helping av
 
 ## unidirectional data flow
 
+State always travels the same cycle — the view never mutates state directly. A boundary web component (`Add.js`) forwards user input to the control layer (`CRUDControl.js`), which dispatches an action to the store; the entity layer reducer (`BookmarksReducer.js`) computes the next state, and the store notifies all subscribed components (`BElement.js`), which re-render via lit-html:
+
+```mermaid
+graph LR
+    Boundary([Boundary<br/>web components]) -->|user event| Control([Control<br/>action creators])
+    Control -->|dispatches action| Store([Store<br/>reduction.js or Redux Toolkit])
+    Store -->|state, action| Entity([Entity<br/>reducers])
+    Entity -->|next state| Store
+    Store -->|notifies subscribers| Boundary
+    Store -.->|persists state| Storage([localStorage])
+
+    classDef boundary fill:#d5e8d4,stroke:#82b366,color:#000
+    classDef control fill:#e1d5e7,stroke:#9673a6,color:#000
+    classDef entity fill:#fff2cc,stroke:#d6b656,color:#000
+    classDef bc fill:#dae8fc,stroke:#6c8ebf,color:#000
+    classDef ext fill:#fff2cc,stroke:#d6b656,color:#000,stroke-dasharray:5 5
+    class Boundary boundary
+    class Control control
+    class Entity entity
+    class Store bc
+    class Storage ext
+```
+
 [![unidirectional data flow](https://i.ytimg.com/vi/zjtaLLs2eSM/mqdefault.jpg)](https://www.youtube.com/embed/zjtaLLs2eSM?rel=0)
 
 ## static hosting on Amazon S3
