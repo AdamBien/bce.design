@@ -2,7 +2,9 @@
 
 Quickstarter and sample application for building non-trivial web applications with minimal tooling, essential dependencies, high productivity, and no migrations.
 
-Built on web standards and browser APIs - no framework lock-in, just native [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components), [ES modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules), and modern JavaScript. Visit [bce.design/web-components](https://bce.design/web-components.html) for more information.
+**Web standards first, external libraries last.** Built directly on browser APIs - no framework lock-in, just native [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components), [ES modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules), and modern JavaScript. Visit [bce.design/web-components](https://bce.design/web-components.html) for more information.
+
+Every external dependency is treated as a liability and continuously replaced with web standards: the Bulma CSS framework was removed in favor of plain CSS design tokens, and Redux Toolkit is superseded by [reduction.js](app/src/reduction.js), a minimal standards-based store built on [structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone). The single remaining runtime library is [lit-html](https://lit.dev/docs/libraries/standalone-templates/) for declarative templating.
 
 > [!TIP]
 > LLMs love stable web standards: [airails.dev](https://airails.dev) ...and developers predictability: [sbce.dev](https://sbce.dev). This project's architecture rules are captured in the [web-components skill](https://github.com/AdamBien/airails/tree/main/web/web-components).
@@ -208,3 +210,5 @@ Article: [Web Components, Boundary Control Entity (BCE) and Unidirectional Data 
 # AI coding agents
 
 Guidance for AI coding agents (Claude Code, Codex, Gemini CLI, ...) is maintained in [AGENTS.md](./AGENTS.md).
+
+powered by [airhacks.industries](https://airhacks.industries)
