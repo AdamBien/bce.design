@@ -13,7 +13,7 @@ Every external dependency is treated as a liability and continuously replaced wi
 
 This project implements **unidirectional data flow** with a Redux-style store for predictable state management. All state changes flow in one direction: Actions → Reducers → Store → View Components. The application follows the Boundary Control Entity (BCE) pattern for clear separation of concerns.
 
-Two interchangeable store implementations are provided, selected via the import map in `app/src/index.html`: [reduction.js](app/src/reduction.js) (active default) — a minimal, standards-based implementation of the used Redux Toolkit API (`configureStore`, `createAction`, `createReducer`) that relies on [structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone) instead of Immer — or the original [Redux Toolkit](https://redux-toolkit.js.org) bundled in `app/src/libs/`. Application code imports `@reduxjs/toolkit` either way; switching is a one-line import map change.
+Two interchangeable store implementations are provided, selected via the import map in `app/src/index.html`: [reduction.js](app/src/reduction.js) (active default) — a minimal, standards-based implementation of the used Redux Toolkit API (`configureStore`, `createAction`, `createReducer`) that relies on [structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone) instead of Immer — or the original [Redux Toolkit](https://redux-toolkit.js.org) vendored in `app/src/libs/`. Application code imports `@reduxjs/toolkit` either way; switching is a one-line import map change.
 
 <img src="https://repository-images.githubusercontent.com/355100926/4731b900-979e-11eb-9014-3b30688cc691" alt="Boundary Control Entity quickstarter -> with web components" height="400"/>
 
@@ -97,19 +97,17 @@ The e2e tests with configured global code coverage is available from: [codecover
 
 # update dependencies
 
-Runtime dependencies (lit-html, Redux Toolkit) are bundled as ES modules into `app/src/libs/` and mapped via the import map in `index.html`. To update, edit `package.json` in [libs](https://github.com/AdamBien/bce.design/tree/main/libs), then:
+There is no build system. Runtime dependencies are vendored as self-contained ES modules in `app/src/libs/` and mapped via the import map in `index.html`. lit-html ships as a single dependency-free module, so an update is a plain file copy:
 
 ```bash
-cd libs
-npm install
-npx rollup -c
+./update-lit-html.sh          # latest
+./update-lit-html.sh 3.3.3    # specific version
 ```
 
 # external ingredients
 
 1. [lit-html](https://lit.dev/docs/libraries/standalone-templates/)
 2. [redux toolkit](https://redux-toolkit.js.org) (optional — [reduction.js](app/src/reduction.js), a minimal built-in implementation of the used API, is the active default; switch via the import map in `index.html`)
-3. [rollup](https://rollupjs.org/) (for updates / optional)
 
 Client-side routing is implemented with web standards: the [Navigation API](https://developer.mozilla.org/en-US/docs/Web/API/Navigation_API) and [URLPattern](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern) — no router dependency required.
 

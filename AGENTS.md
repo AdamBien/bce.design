@@ -46,13 +46,7 @@ npm test  # or npx playwright test
 
 ### Dependency Management
 
-Runtime dependencies (lit-html, Redux Toolkit) are bundled as ESM into `app/src/libs/` and mapped via the import map in `index.html`:
-
-```bash
-cd libs
-npm install     # Install dependencies
-npx rollup -c   # Rebuild bundles into app/src/libs/
-```
+There is no build system. Runtime dependencies (lit-html, Redux Toolkit) are vendored as self-contained ES modules in `app/src/libs/` and mapped via the import map in `index.html`. To update lit-html, run `./update-lit-html.sh [version]` (default: latest) from the repository root.
 
 ## Architecture and Coding Conventions
 
