@@ -46,7 +46,7 @@ npm test  # or npx playwright test
 
 ### Dependency Management
 
-There is no build system. Runtime dependencies (lit-html, Redux Toolkit) are vendored as self-contained ES modules in `app/src/libs/` and mapped via the import map in `index.html`. To update lit-html, run `./update-lit-html.sh [version]` (default: latest) from the repository root.
+There is no build system. Runtime dependencies (lit-html, Redux Toolkit) are vendored as self-contained ES modules in `app/src/libs/` and mapped via the import map in `index.html`. To update lit-html, run `./update-lit-html.sh <version>` (e.g. `3.3.3`) from the repository root — it fetches the release directly from the npm registry.
 
 ## Architecture and Coding Conventions
 

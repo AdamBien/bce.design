@@ -100,8 +100,7 @@ The e2e tests with configured global code coverage is available from: [codecover
 There is no build system. Runtime dependencies are vendored as self-contained ES modules in `app/src/libs/` and mapped via the import map in `index.html`. lit-html ships as a single dependency-free module, so an update is a plain file copy:
 
 ```bash
-./update-lit-html.sh          # latest
-./update-lit-html.sh 3.3.3    # specific version
+./update-lit-html.sh 3.3.3
 ```
 
 # external ingredients
