@@ -4,7 +4,7 @@ Quickstarter and sample application for building non-trivial web applications wi
 
 **Web standards first, external libraries last.** Built directly on browser APIs - no framework lock-in, just native [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components), [ES modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules), and modern JavaScript. Visit [bce.design/web-components](https://bce.design/web-components.html) for more information.
 
-Every external dependency is treated as a liability and continuously replaced with web standards: the Bulma CSS framework was removed in favor of plain CSS design tokens, and Redux Toolkit is superseded by [reduction.js](app/src/reduction.js), a minimal standards-based store built on [structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone). The single remaining runtime library is [lit-html](https://lit.dev/docs/libraries/standalone-templates/) for declarative templating.
+Every external dependency is treated as a liability and continuously replaced with web standards: the Bulma CSS framework was removed in favor of plain CSS design tokens, and Redux Toolkit is superseded by [reduction.js](app/src/reduction.js), a minimal standards-based store built on [structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone). The single remaining runtime library is [lit-html](https://lit.dev/docs/libraries/standalone-templates/) for declarative templating. The complete replacement log: [from dependencies to web standards](#from-dependencies-to-web-standards).
 
 > [!TIP]
 > LLMs love stable web standards: [airails.dev](https://airails.dev) ...and developers predictability: [sbce.dev](https://sbce.dev). This project's architecture rules are captured in the [web-components skill](https://github.com/AdamBien/airails/tree/main/web/web-components).
@@ -128,6 +128,19 @@ graph LR
 
 [![static web hosting on Amazon S3 intro](https://i.ytimg.com/vi/EtvyaUJjg_E/mqdefault.jpg)](https://www.youtube.com/watch?v=EtvyaUJjg_E)
 
+
+# from dependencies to web standards
+
+Each external dependency was removed once a web standard could take over. The dependency name links to the commit that eliminated it:
+
+| removed dependency | web standard replacement | in the code |
+|---|---|---|
+| [Vaadin Router](https://github.com/AdamBien/bce.design/commit/4dcede8) | [Navigation API](https://developer.mozilla.org/en-US/docs/Web/API/Navigation_API) + [URLPattern](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern) | [router.js](app/src/router.js) |
+| [Bulma CSS framework](https://github.com/AdamBien/bce.design/commit/cf4be4f) | [CSS custom properties](https://developer.mozilla.org/en-US/docs/Web/CSS/--*) as design tokens, [container queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries) | [tokens.css](app/src/tokens.css), [style.css](app/src/style.css) |
+| [Redux Toolkit + Immer](https://github.com/AdamBien/bce.design/commit/2cdadf2) | [structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone)-based store | [reduction.js](app/src/reduction.js) |
+| [build system (Rollup / npm)](https://github.com/AdamBien/bce.design/commit/f4fd563) | [import maps](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) + vendored ES modules | [index.html](app/src/index.html), [libs/](app/src/libs/) |
+
+[lit-html](https://lit.dev/docs/libraries/standalone-templates/) is the last remaining runtime dependency — declarative templating with efficient re-rendering has no web standard equivalent yet.
 
 # resources
 
