@@ -139,8 +139,9 @@ Each external dependency was removed once a web standard could take over. The de
 | [Bulma CSS framework](https://github.com/AdamBien/bce.design/commit/cf4be4f) | [CSS custom properties](https://developer.mozilla.org/en-US/docs/Web/CSS/--*) as design tokens, [container queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries) | [tokens.css](app/src/tokens.css), [style.css](app/src/style.css) |
 | [Redux Toolkit + Immer](https://github.com/AdamBien/bce.design/commit/2cdadf2) | [structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone)-based store | [reduction.js](app/src/reduction.js) |
 | [build system (Rollup / npm)](https://github.com/AdamBien/bce.design/commit/f4fd563) | [import maps](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) + vendored ES modules | [index.html](app/src/index.html), [libs/](app/src/libs/) |
+| [lit-html](https://lit.dev/docs/libraries/standalone-templates/) *(pending)* | [DOM Parts](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/DOM-Parts.md) — proposal, not yet implemented in browsers | [libs/lit-html.js](app/src/libs/lit-html.js) |
 
-[lit-html](https://lit.dev/docs/libraries/standalone-templates/) is the last remaining runtime dependency — declarative templating with efficient re-rendering has no web standard equivalent yet.
+lit-html is the last remaining runtime dependency — declarative templating with efficient re-rendering has no shipped web standard equivalent yet. Once DOM Parts lands, the final row completes.
 
 # resources
 
