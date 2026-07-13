@@ -19,60 +19,14 @@ Two interchangeable store implementations are provided, selected via the import 
 
 # run
 
-Serve `app/src` with any static web server that falls back to `index.html` for unknown paths (required for client-side routing).
-
-## Launch with zws (zero dependencies web server)
-
-With a recent Java installation, serve the assets with [zws](https://github.com/adamBien/zws):
+There is nothing to build. Serve `app/src` with any static web server that falls back to `index.html` for unknown paths (required for client-side routing), e.g. with [zws](https://github.com/adamBien/zws) (zero dependencies web server, requires Java):
 
 ```bash
 cd app/src
 zws.sh --single
 ```
 
-
-## Launch with browsersync
-
-1. Install [browsersync](https://www.browsersync.io)
-2. `git clone https://github.com/AdamBien/bce.design`
-3. `cd app`
-4. Run: `browser-sync src -f src -b "google chrome" --no-notify --single`
-
-The `--single` flag serves `index.html` for unknown paths — required for deep links like `/add`.
-
-## Launch with serve
-
-```bash
-cd app
-npx serve -s src
-```
-
-The `--single` flag enables the `index.html` fallback for client-side routes; without it, deep links like `/add` return 404.
-
-## Launch with Quarkus
-
-Serve the application as static resources using Quarkus:
-
-1. Copy the `app/src` contents to `src/main/resources/META-INF/resources/`:
-```bash
-cp -r app/src/* [APP_DIR]/src/main/resources/META-INF/resources/
-```
-
-2. Run in development mode:
-```bash
-cd [APP_DIR]
-mvn quarkus:dev
-```
-
-3. Access the application at `http://localhost:8080`
-
-4. Build for production and run:
-```bash
-mvn package
-java -jar target/quarkus-app/quarkus-run.jar
-```
-
-Quarkus automatically serves static files from `META-INF/resources/` and provides production-ready features like compression, caching headers, and efficient resource serving.
+For deployment, copy `app/src` to any static host — an S3 bucket, a CDN, or the `META-INF/resources/` folder of a [Quarkus](https://quarkus.io) backend.
 
 [![BCE overview](https://i.ytimg.com/vi/LYzGgCW0OxY/mqdefault.jpg)](https://www.youtube.com/embed/LYzGgCW0OxY?rel=0)
 
