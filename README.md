@@ -47,7 +47,7 @@ The e2e tests with configured global code coverage is available from: [codecover
 1. [Visual Studio Code](https://code.visualstudio.com)
 2. Setup: [JS imports](https://www.adam-bien.com/roller/abien/entry/fixing_es_6_import_autocompletion)
 3. lit-html [plugin](https://marketplace.visualstudio.com/items?itemName=bierner.lit-html) for syntax highlighting inside html templates
-4. redux devtools chrome [extension](https://github.com/zalmoxisus/redux-devtools-extension)
+4. redux devtools browser [extension](https://github.com/reduxjs/redux-devtools) — works with both store implementations, see [observability](#observability)
 
 # update dependencies
 
@@ -79,6 +79,13 @@ initRouter(document.querySelector('.view'), [
 Navigation is plain HTML: any `<a href="/add">` whose URL matches a route is intercepted by the Navigation API and rendered client-side — no `Router.go()`, no link components. URLPattern uses the same `:param` syntax as router libraries (both inherit it from `path-to-regexp`); named path parameters are passed to the routed component as attributes. The edit view demonstrates the pattern: the list renders `<a href="/edit/${bookmark.id}">`, the router creates `<b-bookmarks bookmarkid="...">`, and the component loads the bookmark into the form through the control layer.
 
 Deliberate non-features: URLs matching no route fall through to regular browser navigation (external links keep working), and reloads are never intercepted (reload means reload). Both imply the serving requirement above — unknown paths must fall back to `index.html`.
+
+# observability
+
+Store and components report diagnostics directly to browser DevTools — no additional tooling required:
+
+- **Redux DevTools**: with the [Redux DevTools extension](https://github.com/reduxjs/redux-devtools) installed, [reduction.js](app/src/reduction.js) reports every dispatched action and the resulting state — action log, payloads, state tree, and diffs appear in the Redux panel. Without the extension this is a no-op.
+- **User Timing**: every dispatch records standards-based [performance.measure](https://developer.mozilla.org/en-US/docs/Web/API/Performance/measure) entries: `reduce <action>` (reducer run) and `notify <action>` (subscriber notification) in [reduction.js](app/src/reduction.js), plus `render <Component>` per web component in [BElement.js](app/src/BElement.js). The component renders nest inside the `notify` window, breaking each dispatch down by component — visible in the Performance panel's Timings track and queryable via `performance.getEntriesByType('measure')`.
 
 # what is BCE?
 
@@ -163,6 +170,7 @@ lit-html is the last remaining runtime dependency — declarative templating wit
 - [Spread Syntax](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax) - Expand arrays/objects
 - [Navigation API](https://developer.mozilla.org/en-US/docs/Web/API/Navigation_API) - Intercepts same-origin navigations for client-side routing
 - [URLPattern](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern) - Route matching without a router dependency
+- [User Timing / performance.measure](https://developer.mozilla.org/en-US/docs/Web/API/Performance/measure) - Per-dispatch and per-component timing in the Performance panel
 
 ## Testing & Development Tools
 
