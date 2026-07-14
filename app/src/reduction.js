@@ -51,19 +51,29 @@ const combineReducers = (reducers) => (state = {}, action) =>
  *   unsubscribe function. Listeners are held in a Set, so double
  *   subscription of the same function is a no-op.
  *
+ * Diagnostics: when the Redux DevTools browser extension is installed, the
+ * store connects to it and reports the initial state and every dispatched
+ * action with the resulting state — inspectable in the extension's Redux
+ * panel (action log, payloads, state tree, diffs). Without the extension
+ * this is a no-op; time travel is not supported.
+ *
  * @param {{reducer: (Function|Object.<string, Function>), preloadedState?: Object}} config
  * @returns {{getState: Function, dispatch: Function, subscribe: Function}} the store
  * @see {@link https://redux-toolkit.js.org/api/configureStore|Redux Toolkit: configureStore}
  * @see {@link https://redux.js.org/api/store|Redux: Store methods}
+ * @see {@link https://github.com/reduxjs/redux-devtools|Redux DevTools extension}
  */
 export const configureStore = ({ reducer, preloadedState }) => {
     const rootReducer = typeof reducer === 'function' ? reducer : combineReducers(reducer);
     let state = rootReducer(preloadedState, { type: '@@INIT' });
+    const devTools = globalThis.__REDUX_DEVTOOLS_EXTENSION__?.connect({ name: 'reduction' });
+    devTools?.init(state);
     const listeners = new Set();
     return {
         getState: () => state,
         dispatch(action) {
             state = rootReducer(state, action);
+            devTools?.send(action, state);
             listeners.forEach(listener => listener());
             return action;
         },
