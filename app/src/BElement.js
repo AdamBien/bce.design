@@ -59,9 +59,18 @@ export default class BElement extends HTMLElement {
      * Extracts relevant state from Redux store, generates view template,
      * and renders it to the DOM using lit-html.
      * Called automatically on store updates and initial connection.
+     *
+     * Records a User Timing measure named `render <ComponentName>` covering
+     * the full cycle (state extraction, template creation, lit-html render).
+     * In the DevTools Performance panel (Timings track) these entries nest
+     * inside the store's `notify <action.type>` measure, breaking the
+     * per-dispatch subscriber cost down by component. Queryable via
+     * `performance.getEntriesByType('measure')`.
+     * @see {@link https://w3c.github.io/user-timing/|W3C User Timing (performance.measure)}
      */
     triggerViewUpdate() {
         console.group(this.log('triggerViewUpdate'))
+        const start = performance.now();
         console.log('Before extraction:', store.getState());
         this.state = this.extractState(store.getState());
         console.log('After extraction:', this.state);
@@ -69,6 +78,7 @@ export default class BElement extends HTMLElement {
         console.log('View fetched');
         render(template, this.getRenderTarget());
         console.log('View rendered');
+        performance.measure(`render ${this.constructor.name}`, { start });
         console.groupEnd();
     }
 
