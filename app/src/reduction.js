@@ -57,11 +57,18 @@ const combineReducers = (reducers) => (state = {}, action) =>
  * panel (action log, payloads, state tree, diffs). Without the extension
  * this is a no-op; time travel is not supported.
  *
+ * Timing: every dispatch records a User Timing measure named
+ * `reduce <action.type>` covering the root reducer run, and
+ * `notify <action.type>` covering subscriber notification — visible in the
+ * DevTools Performance panel (Timings track) and queryable via
+ * `performance.getEntriesByType('measure')`.
+ *
  * @param {{reducer: (Function|Object.<string, Function>), preloadedState?: Object}} config
  * @returns {{getState: Function, dispatch: Function, subscribe: Function}} the store
  * @see {@link https://redux-toolkit.js.org/api/configureStore|Redux Toolkit: configureStore}
  * @see {@link https://redux.js.org/api/store|Redux: Store methods}
  * @see {@link https://github.com/reduxjs/redux-devtools|Redux DevTools extension}
+ * @see {@link https://w3c.github.io/user-timing/|W3C User Timing (performance.measure)}
  */
 export const configureStore = ({ reducer, preloadedState }) => {
     const rootReducer = typeof reducer === 'function' ? reducer : combineReducers(reducer);
@@ -72,9 +79,13 @@ export const configureStore = ({ reducer, preloadedState }) => {
     return {
         getState: () => state,
         dispatch(action) {
+            const start = performance.now();
             state = rootReducer(state, action);
+            performance.measure(`reduce ${action.type}`, { start });
             devTools?.send(action, state);
+            const notifyStart = performance.now();
             listeners.forEach(listener => listener());
+            performance.measure(`notify ${action.type}`, { start: notifyStart });
             return action;
         },
         subscribe(listener) {
