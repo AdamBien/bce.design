@@ -37,7 +37,10 @@
     </section>
     <footer>powered by: <a href="https://airhacks.live">airhacks.live</a></footer>
   </main>
-  <script src="/init.js"></script>
+  <!-- init.js shims window.process, needed only by the original Redux Toolkit --
+       re-enable when the import map points "@reduxjs/toolkit" back to
+       /libs/redux-toolkit.modern.js -->
+  <!-- <script src="/init.js"></script> -->
   <script src="/app.js" type="module"></script>
 </body>
 </html>
