@@ -61,7 +61,10 @@ const combineReducers = (reducers) => (state = {}, action) =>
  * `reduce <action.type>` covering the root reducer run, and
  * `notify <action.type>` covering subscriber notification — visible in the
  * DevTools Performance panel (Timings track) and queryable via
- * `performance.getEntriesByType('measure')`.
+ * `performance.getEntriesByType('measure')`. Each measure carries a
+ * structured-clonable `detail` payload: the dispatched action, and for
+ * `notify` additionally the subscriber count — inspectable by clicking the
+ * entry in the Performance panel or via `entry.detail`.
  *
  * @param {{reducer: (Function|Object.<string, Function>), preloadedState?: Object}} config
  * @returns {{getState: Function, dispatch: Function, subscribe: Function}} the store
@@ -81,11 +84,14 @@ export const configureStore = ({ reducer, preloadedState }) => {
         dispatch(action) {
             const start = performance.now();
             state = rootReducer(state, action);
-            performance.measure(`reduce ${action.type}`, { start });
+            performance.measure(`reduce ${action.type}`, { start, detail: { action } });
             devTools?.send(action, state);
             const notifyStart = performance.now();
             listeners.forEach(listener => listener());
-            performance.measure(`notify ${action.type}`, { start: notifyStart });
+            performance.measure(`notify ${action.type}`, {
+                start: notifyStart,
+                detail: { action, listenerCount: listeners.size }
+            });
             return action;
         },
         subscribe(listener) {

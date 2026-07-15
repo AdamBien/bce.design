@@ -65,7 +65,10 @@ export default class BElement extends HTMLElement {
      * In the DevTools Performance panel (Timings track) these entries nest
      * inside the store's `notify <action.type>` measure, breaking the
      * per-dispatch subscriber cost down by component. Queryable via
-     * `performance.getEntriesByType('measure')`.
+     * `performance.getEntriesByType('measure')`. Each measure carries a
+     * `detail` payload with the extracted state's top-level keys —
+     * inspectable by clicking the entry in the Performance panel or via
+     * `entry.detail`.
      * @see {@link https://w3c.github.io/user-timing/|W3C User Timing (performance.measure)}
      */
     triggerViewUpdate() {
@@ -78,7 +81,10 @@ export default class BElement extends HTMLElement {
         console.log('View fetched');
         render(template, this.getRenderTarget());
         console.log('View rendered');
-        performance.measure(`render ${this.constructor.name}`, { start });
+        performance.measure(`render ${this.constructor.name}`, {
+            start,
+            detail: { stateKeys: Object.keys(this.state) }
+        });
         console.groupEnd();
     }
 
