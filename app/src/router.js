@@ -33,7 +33,7 @@ export const initRouter = (outlet, routeConfig) => {
         if (event.navigationType === 'reload') return;
         const url = new URL(event.destination.url);
         if (!routes.some(({ pattern }) => pattern.test(url))) return;
-        event.intercept({ handler: () => render(url) });
+        event.intercept({ handler: () => { render(url); } });
     });
 
     render(new URL(location.href));

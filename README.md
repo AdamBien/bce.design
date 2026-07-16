@@ -57,6 +57,16 @@ There is no build system. Runtime dependencies are vendored as self-contained ES
 ./update-lit-html.sh 3.3.3
 ```
 
+# optional type checking
+
+There is no transpilation, but the TypeScript compiler serves as an optional, on-demand checker for the plain JavaScript sources ([checkJs](https://www.typescriptlang.org/tsconfig/#checkJs)). [jsconfig.json](app/src/jsconfig.json) mirrors the import map — `lit-html` resolves to a minimal hand-written declaration file ([libs/lit-html.d.ts](app/src/libs/lit-html.d.ts), which also shields the vendored, minified module from being checked) and `@reduxjs/toolkit` to [reduction.js](app/src/reduction.js) — so the application code checks as-is:
+
+```bash
+npx tsc -p app/src/jsconfig.json
+```
+
+TypeScript runs via `npx` at development time only; nothing is installed into the project and the "no build" property is preserved. Visual Studio Code picks up the same `jsconfig.json` automatically for type-aware IntelliSense and inline errors.
+
 # external ingredients
 
 1. [lit-html](https://lit.dev/docs/libraries/standalone-templates/)

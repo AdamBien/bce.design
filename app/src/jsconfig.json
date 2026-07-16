@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "checkJs": true,
+        "noEmit": true,
+        "strict": false,
+        "target": "esnext",
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "skipLibCheck": true,
+        "paths": {
+            "lit-html": ["./libs/lit-html.d.ts"],
+            "@reduxjs/toolkit": ["./reduction.js"]
+        }
+    },
+    "exclude": ["libs", "init.js"]
+}
